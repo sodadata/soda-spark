@@ -33,7 +33,7 @@ def create_scan_yml(scan_yml_file: Union[str, Path]) -> ScanYml:
     return scan_yml
 
 
-def create(scan_yml_file: Union[str, Path]) -> Scan:
+def create_scan(scan_yml_file: Union[str, Path]) -> Scan:
     """
     Create a scan object
 
