@@ -5,17 +5,12 @@ from pathlib import Path
 import pytest
 from pyspark.sql import DataFrame, SparkSession, functions as F, types as T
 
-from sodaspark.scan import Scan
+from sodaspark import scan
 
 
 @pytest.fixture
 def scan_data_frame_path() -> Path:
     return Path(__file__).parent.absolute() / "data/scan_data_frame.yml"
-
-
-@pytest.fixture
-def scan(scan_data_frame_path: Path) -> Scan:
-    return Scan(scan_data_frame_path)
 
 
 @dataclass
@@ -66,11 +61,11 @@ def df(spark_session: SparkSession) -> DataFrame:
 
 
 def test_scan_execute_gives_row_count_of_five(
-    scan: Scan, df: DataFrame
+    scan_data_frame_path: Path, df: DataFrame
 ) -> None:
     """The scan execute should give us a row count of five."""
 
-    scan_results = scan.execute(df)
+    scan_results = scan.execute(scan_data_frame_path, df)
 
     row_count = scan_results.select(F.col("row_count")).first().id
 
