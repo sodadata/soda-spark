@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
-from pyspark.sql import DataFrame, SparkSession, types as T
+from pyspark.sql import DataFrame, SparkSession, functions as F, types as T
 
 from sodaspark.scan import Scan
 
@@ -63,3 +63,15 @@ def df(spark_session: SparkSession) -> DataFrame:
     )
     df = spark_session.createDataFrame(data, schema=schema)
     return df
+
+
+def test_scan_execute_gives_row_count_of_five(
+    scan: Scan, df: DataFrame
+) -> None:
+    """The scan execute should give us a row count of five."""
+
+    scan_results = scan.execute(df)
+
+    row_count = scan_results.select(F.col("row_count")).first().id
+
+    assert row_count == 5
