@@ -14,9 +14,22 @@ pip install soda-spark
 
 # Use Soda Spark
 
-[Intall Soda Spark](#install-soda-spark), then compute a metric with:
+[Intall Soda Spark](#install-soda-spark), then execute a scan with:
 
 ``` python
+from pyspark.sql import DataFrame
+from sodaspark import Scan
+
+df: DataFrame = ...
+
+scan = Scan("./tables/dataframe.yml")
+scan.execute(df)
+```
+
+To compute a single metric, do the following:
+
+``` python
+from pyspark.sql import DataFrame
 import sodaspark
 
 df: DataFrame = ...
