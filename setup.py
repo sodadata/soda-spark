@@ -8,10 +8,10 @@ setup(
     author="Soda",
     extras_require={
         "dev": [
-            "pre-commit==2.2.0",
+            "pre-commit==2.14.1",
             "pytest-spark==0.6.0",
-            "pytest-cov==2.8.1",
-            "pyspark==2.4.5",
+            "pytest-cov==2.12.1",
+            "pyspark==3.1.2",
         ]
     },
 )
