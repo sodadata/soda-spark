@@ -69,16 +69,18 @@ def create_warehouse() -> Warehouse:
     return warehouse
 
 
-def create_scan(scan_yml_file: Union[str, Path]) -> Scan:
+def create_scan(scan_yml: ScanYml) -> Scan:
     """
     Create a scan object
 
     Parameters
     ----------
-    scan_yml_file : Union[str, Path]
-        The path to a scan file.
+    scan_yml : ScanYml
+        The scan yml.
     """
-    pass
+    warehouse = create_warehouse()
+    scan = Scan(warehouse=warehouse, scan_yml=scan_yml)
+    return scan
 
 
 def execute(scan_yml_file: Union[str, Path], df: DataFrame) -> DataFrame:
