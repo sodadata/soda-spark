@@ -1,4 +1,7 @@
+from typing import Iterator
+
 from pyspark.sql import DataFrame
+from soda.scan.column_metadata import ColumnMetadata
 
 
 def get_metric(df: DataFrame, metric: str) -> DataFrame:
@@ -16,6 +19,23 @@ def get_metric(df: DataFrame, metric: str) -> DataFrame:
     -------
     out : DataFrame
         The measurement with its value.
+    """
+    pass
+
+
+def iterate_column_metadata(*columns: list[str]) -> Iterator[ColumnMetadata]:
+    """
+    Iterate over the column meta data objects.
+
+    Parameters
+    ----------
+    *columns: List[str]
+        The columns to iterate over.
+
+    Returns
+    -------
+    out : ColumnMetadata
+        The column metadata.
     """
     pass
 
