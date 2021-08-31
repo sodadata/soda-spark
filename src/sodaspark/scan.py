@@ -4,10 +4,12 @@ from pathlib import Path
 from pyspark.sql import DataFrame
 
 from sodasql.common.yaml_helper import YamlHelper
+from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
 from sodasql.scan.scan import Scan
 from sodasql.scan.scan_yml import ScanYml
 from sodasql.scan.scan_yml_parser import ScanYmlParser
+from sodasql.scan.warehouse_yml import WarehouseYml
 
 
 def create_scan_yml(scan_yml_file: Union[str, Path]) -> ScanYml:
@@ -31,6 +33,14 @@ def create_scan_yml(scan_yml_file: Union[str, Path]) -> ScanYml:
     scan_yml_parser.log()
     scan_yml = scan_yml_parser.scan_yml
     return scan_yml
+
+
+def create_warehouse_yml() -> WarehouseYml:
+    """Create Spark a ware house yml."""
+    warehouse_yml = WarehouseYml(
+        dialect=SparkDialect(None),
+    )
+    return warehouse_yml
 
 
 def create_scan(scan_yml_file: Union[str, Path]) -> Scan:
