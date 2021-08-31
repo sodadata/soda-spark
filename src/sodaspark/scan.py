@@ -58,6 +58,7 @@ def create_warehouse_yml() -> WarehouseYml:
     """Create Spark a ware house yml."""
     warehouse_yml = WarehouseYml(
         dialect=_SparkDialect(),
+        name="sodaspark",
     )
     return warehouse_yml
 
