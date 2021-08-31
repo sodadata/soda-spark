@@ -84,8 +84,8 @@ def test_create_warehouse_has_spark_dialect(
 
 
 def test_create_scan_has_spark_dialect(
-    scan_data_frame_path: Path,
     spark_session: SparkSession,
+    scan_data_frame_path: Path,
 ) -> None:
     """The scan should have the spark dialect"""
     scan_yml = scan.create_scan_yml(scan_data_frame_path)
