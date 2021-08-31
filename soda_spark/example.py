@@ -8,7 +8,9 @@ def add(a: int, b: int) -> int:
 
 
 def read_csv(spark_session: SparkSession, path: str) -> DataFrame:
-    return spark_session.read.load(path, format="csv", inferSchema="true", header="true")
+    return spark_session.read.load(
+        path, format="csv", inferSchema="true", header="true"
+    )
 
 
 def salary_per_department(
