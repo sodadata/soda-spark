@@ -18,12 +18,11 @@ pip install soda-spark
 
 ``` python
 from pyspark.sql import DataFrame
-from sodaspark import Scan
+from sodaspark import scan
 
 df: DataFrame = ...
 
-scan = Scan("./tables/dataframe.yml")
-scan.execute(df)
+scan = scan.execute("./tables/dataframe.yml", df)
 ```
 
 To compute a single metric, do the following:
