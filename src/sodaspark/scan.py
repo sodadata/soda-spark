@@ -14,6 +14,10 @@ from sodasql.scan.warehouse_yml import WarehouseYml
 
 
 class _SparkDialect(SparkDialect):
+    def __init__(self) -> None:
+        super().__init__(None)
+        self.database = "default"
+
     def create_connection(self) -> SparkSession:
         """
         Create a connection to the spark session.
@@ -53,7 +57,7 @@ def create_scan_yml(scan_yml_file: Union[str, Path]) -> ScanYml:
 def create_warehouse_yml() -> WarehouseYml:
     """Create Spark a ware house yml."""
     warehouse_yml = WarehouseYml(
-        dialect=_SparkDialect(None),
+        dialect=_SparkDialect(),
     )
     return warehouse_yml
 
