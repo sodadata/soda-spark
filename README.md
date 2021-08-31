@@ -11,3 +11,15 @@ Install the package using pip.
 ``` sh
 pip install soda-spark
 ```
+
+# Use Soda Spark
+
+[Intall Soda Spark](#install-soda-spark), then compute a metric with:
+
+``` python
+import sodaspark
+
+df: DataFrame = ...
+
+sodaspark.get_metric(df, "row_count")
+```
