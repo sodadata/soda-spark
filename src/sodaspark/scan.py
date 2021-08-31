@@ -18,3 +18,20 @@ def get_metric(df: DataFrame, metric: str) -> DataFrame:
         The measurement with its value.
     """
     pass
+
+
+def compile_sql_for_metric(metric: str) -> str:
+    """
+    Compile the SQL for a metric.
+
+    Parameters
+    ----------
+    metric: str
+        The metric.
+
+    Returns
+    -------
+    out : str
+        The compiled SQL.
+    """
+    pass
