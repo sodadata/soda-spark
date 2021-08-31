@@ -75,6 +75,14 @@ def test_create_warehouse_yml_has_spark_dialect() -> None:
     assert isinstance(warehouse_yml.dialect, SparkDialect)
 
 
+def test_create_warehouse_has_spark_dialect(
+    spark_session: SparkSession,
+) -> None:
+    """The warehouse should have the spark dialect"""
+    warehouse = scan.create_warehouse()
+    assert isinstance(warehouse.dialect, SparkDialect)
+
+
 def test_scan_execute_gives_row_count_of_five(
     scan_data_frame_path: Path, df: DataFrame
 ) -> None:
