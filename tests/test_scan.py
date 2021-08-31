@@ -60,6 +60,14 @@ def df(spark_session: SparkSession) -> DataFrame:
     return df
 
 
+def test_create_scan_yml_table_name_is_none(
+    scan_data_frame_path: Path,
+) -> None:
+    """The table name is not defined in the test yaml."""
+    scan_yml = scan.create_scan_yml(scan_data_frame_path)
+    assert scan_yml.table_name is None
+
+
 def test_scan_execute_gives_row_count_of_five(
     scan_data_frame_path: Path, df: DataFrame
 ) -> None:
