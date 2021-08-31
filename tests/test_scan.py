@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 from pyspark.sql import DataFrame, SparkSession, functions as F, types as T
+from sodasql.dialects.spark_dialect import SparkDialect
 
 from sodaspark import scan
 
@@ -66,6 +67,12 @@ def test_create_scan_yml_table_name_is_none(
     """The table name is not defined in the test yaml."""
     scan_yml = scan.create_scan_yml(scan_data_frame_path)
     assert scan_yml.table_name is None
+
+
+def test_create_warehouse_yml_has_spark_dialect() -> None:
+    """The warehouse yml should have the spark dialect"""
+    warehouse_yml = scan.create_warehouse_yml()
+    assert isinstance(warehouse_yml.dialect, SparkDialect)
 
 
 def test_scan_execute_gives_row_count_of_five(
