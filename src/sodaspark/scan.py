@@ -1,7 +1,7 @@
 from typing import Union
 from pathlib import Path
 
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, SparkSession
 
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
@@ -9,7 +9,22 @@ from sodasql.scan.file_system import FileSystemSingleton
 from sodasql.scan.scan import Scan
 from sodasql.scan.scan_yml import ScanYml
 from sodasql.scan.scan_yml_parser import ScanYmlParser
+from sodasql.scan.warehouse import Warehouse
 from sodasql.scan.warehouse_yml import WarehouseYml
+
+
+class _SparkDialect(SparkDialect):
+    def create_connection(self) -> SparkSession:
+        """
+        Create a connection to the spark session.
+
+        Returns
+        -------
+        out : SparkSession
+            The active spark session.
+        """
+        spark_session = SparkSession.builder.getOrCreate()
+        return spark_session
 
 
 def create_scan_yml(scan_yml_file: Union[str, Path]) -> ScanYml:
@@ -38,9 +53,16 @@ def create_scan_yml(scan_yml_file: Union[str, Path]) -> ScanYml:
 def create_warehouse_yml() -> WarehouseYml:
     """Create Spark a ware house yml."""
     warehouse_yml = WarehouseYml(
-        dialect=SparkDialect(None),
+        dialect=_SparkDialect(None),
     )
     return warehouse_yml
+
+
+def create_warehouse() -> Warehouse:
+    """Create a ware house."""
+    warehouse_yml = create_warehouse_yml()
+    warehouse = Warehouse(warehouse_yml)
+    return warehouse
 
 
 def create_scan(scan_yml_file: Union[str, Path]) -> Scan:
