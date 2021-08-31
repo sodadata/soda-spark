@@ -29,6 +29,7 @@ scan.execute(df)
 To compute a single metric, do the following:
 
 ``` python
+from pyspark.sql import DataFrame
 import sodaspark
 
 df: DataFrame = ...
