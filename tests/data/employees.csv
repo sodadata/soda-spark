@@ -1,5 +1,0 @@
-department_id,email,firstname,lastname,salary
-123456,no-reply@berkeley.edu,michael,armbrust,100000
-123456,no-reply@stanford.edu,xiangrui,meng,120000
-789012,no-reply@waterloo.edu,matei,"",140000
-345678,no-reply@berkeley.edu,pieter,wendell,345678
