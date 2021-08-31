@@ -28,8 +28,8 @@ source ./venv/bin/activate
 # Testing
 
 For making sure that the application works as expected, we have several layers
-of testing. These layers are explained in the 
-[Practical Test Pyramid](https://martinfowler.com/articles/practical-test-pyramid.html) 
+of testing. These layers are explained in the
+[Practical Test Pyramid](https://martinfowler.com/articles/practical-test-pyramid.html)
 of Martin Fowler.
 
 ![alt text](static/testing.png "Test Pyramid")
@@ -49,7 +49,7 @@ consists of but is not limited to:
 	* The code is free of debug statements
 * [**Flake8**](https://pypi.org/project/flake8/) is a Python library that wraps
   PyFlakes, pycodestyle and Ned Batchelder's McCabe script. It is a great
-  toolkit for checking your code base against coding style 
+  toolkit for checking your code base against coding style
   ([PEP 8](https://www.python.org/dev/peps/pep-0008/), programming errors (like
   “library imported but unused” and “Undefined name”) and to check complexity.
 * [**Black**](https://github.com/psf/black) is the Python code formatter and
@@ -58,7 +58,7 @@ consists of but is not limited to:
   you speed, determinism, and freedom from pycodestyle nagging about formatting.
   You will save time and mental energy for more important matters.
 * [**MyPy**](https://github.com/python/mypy) is an optional static type checker
-  for Python. You can add type hints 
+  for Python. You can add type hints
   ([PEP 484](https://www.python.org/dev/peps/pep-0484/)) to your Python
   programs, and use mypy to type check them statically. Find bugs in your
   programs without even running them!
