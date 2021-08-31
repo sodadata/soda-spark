@@ -7,6 +7,7 @@ setup(
     description="Soda SQL API for PySpark data frame",
     author="Soda",
     install_requires=[
+        "soda-sql==2.0.0b27",  # TODO: Replace version pin with version range
         "pyspark>=3.0.0,<4.0.0",
     ],
     extras_require={
