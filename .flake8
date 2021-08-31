@@ -1,0 +1,4 @@
+[flake8]
+ignore = E226,E302,E41,W504,W503
+max-line-length = 120
+exclude = venv\,direnv\

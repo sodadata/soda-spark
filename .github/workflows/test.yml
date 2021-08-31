@@ -1,0 +1,27 @@
+name: PR pipeline
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-18.04
+    steps:
+     - uses: actions/checkout@v2
+
+     - name: Set up Python {% raw %}${{ matrix.python-version }}{% endraw %}
+       uses: actions/setup-python@v2
+       with:
+         python-version: 3.9
+
+     - name: Install pre-commit
+       shell: bash
+       run: pip3 install pre-commit
+
+     - name: Run pre-commit hooks
+       shell: bash
+       run: pre-commit run --all-file
