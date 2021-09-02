@@ -15,9 +15,6 @@ from sodasql.scan.warehouse import Warehouse
 from sodasql.scan.warehouse_yml import WarehouseYml
 
 
-DEFAULT_TABLE_NAME = "__soda_temporary_view"
-
-
 class _Warehouse(Warehouse):
     def sql_fetchone(self, sql: str) -> Row:
         """
@@ -153,8 +150,7 @@ def pre_execute(scan_yml_file: Union[str, Path], df: DataFrame) -> Scan:
         The scan object.
     """
     scan_yml = create_scan_yml(scan_yml_file)
-    scan_yml.table_name = DEFAULT_TABLE_NAME
-    df.createOrReplaceGlobalTempView(DEFAULT_TABLE_NAME)
+    df.createOrReplaceGlobalTempView(scan_yml.table_name)
     scan = create_scan(scan_yml)
     return scan
 

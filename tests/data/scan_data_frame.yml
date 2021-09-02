@@ -1,3 +1,4 @@
+table_name: demodata
 metrics:
   - row_count
   - missing_count

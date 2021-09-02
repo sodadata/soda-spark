@@ -63,12 +63,12 @@ def df(spark_session: SparkSession) -> DataFrame:
     return df
 
 
-def test_create_scan_yml_table_name_is_none(
+def test_create_scan_yml_table_name_is_demodata(
     scan_data_frame_path: Path,
 ) -> None:
-    """The table name is not defined in the test yaml."""
+    """Validate the table name is as expected."""
     scan_yml = scan.create_scan_yml(scan_data_frame_path)
-    assert scan_yml.table_name is None
+    assert scan_yml.table_name == "demodata"
 
 
 def test_create_warehouse_yml_has_spark_dialect() -> None:
