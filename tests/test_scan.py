@@ -3,8 +3,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+from pandas import testing as pd_testing
 from pyspark.sql import DataFrame, SparkSession, functions as F, types as T
 from sodasql.dialects.spark_dialect import SparkDialect
+from sodasql.scan.measurement import Measurement
 
 from sodaspark import scan
 
@@ -119,6 +121,30 @@ def test_scan_execute_row_count_in_scan_result_measurements(
         "row_count" == measurement.metric
         for measurement in scanner.scan_result.measurements
     )
+
+
+def test_measurements_to_data_frame_example(
+    spark_session: SparkSession,
+) -> None:
+    """Convert and valid an example list of measurements."""
+    expected = spark_session.createDataFrame(
+        [
+            {"metric": "metric", "columnName": "id", "value": "10"},
+            {"metric": "metric", "columnName": "name", "value": "-30"},
+            {"metric": "another_metric", "columnName": "id", "value": "999"},
+        ]
+    )
+
+    measurements = [
+        Measurement(metric="metric", column_name="id", value=10),
+        Measurement(metric="metric", column_name="name", value=-30),
+        Measurement(metric="another_metric", column_name="id", value=999),
+    ]
+    out = scan.measurements_to_data_frame(measurements).select(
+        *[F.col(column) for column in expected.columns]
+    )
+
+    pd_testing.assert_frame_equal(expected.toPandas(), out.toPandas())
 
 
 def test_scan_execute_gives_row_count_of_five(
