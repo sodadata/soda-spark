@@ -20,7 +20,7 @@ DEFAULT_TABLE_NAME = "__soda_temporary_view"
 class _SparkDialect(SparkDialect):
     def __init__(self) -> None:
         super().__init__(None)
-        self.database = "default"
+        self.database = "global_temp"
 
     def create_connection(self) -> SparkSession:
         """
