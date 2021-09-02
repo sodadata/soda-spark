@@ -107,6 +107,20 @@ def test_scan_execute_data_frame_columns_in_scan_columns(
     assert all(column in scanner.scan_columns.keys() for column in df.columns)
 
 
+def test_scan_execute_row_count_in_scan_result_measurements(
+    spark_session: SparkSession,
+    scan_data_frame_path: Path,
+    df: DataFrame,
+) -> None:
+    """The "row_count" should be in the measurements results."""
+    scanner = scan.pre_execute(scan_data_frame_path, df)
+    scanner.execute()
+    assert any(
+        "row_count" == measurement.metric
+        for measurement in scanner.scan_result.measurements
+    )
+
+
 def test_scan_execute_gives_row_count_of_five(
     scan_data_frame_path: Path, df: DataFrame
 ) -> None:
