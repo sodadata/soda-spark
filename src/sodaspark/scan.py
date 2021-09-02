@@ -14,6 +14,9 @@ from sodasql.scan.warehouse import Warehouse
 from sodasql.scan.warehouse_yml import WarehouseYml
 
 
+DEFAULT_TABLE_NAME = "__soda_temporary_view"
+
+
 class _SparkDialect(SparkDialect):
     def __init__(self) -> None:
         super().__init__(None)
@@ -110,6 +113,29 @@ def create_scan(scan_yml: ScanYml) -> Scan:
     """
     warehouse = create_warehouse()
     scan = Scan(warehouse=warehouse, scan_yml=scan_yml)
+    return scan
+
+
+def pre_execute(scan_yml_file: Union[str, Path], df: DataFrame) -> Scan:
+    """
+    Function to run before the execute.
+
+    Parameters
+    ----------
+    scan_yml_file : Union[str, Path]
+        The path to a scan file.
+    df: DataFrame
+        The data frame to be scanned.
+
+    Returns
+    -------
+    out : Scan
+        The scan object.
+    """
+    scan_yml = create_scan_yml(scan_yml_file)
+    scan_yml.table_name = DEFAULT_TABLE_NAME
+    df.createOrReplaceGlobalTempView(DEFAULT_TABLE_NAME)
+    scan = create_scan(scan_yml)
     return scan
 
 
