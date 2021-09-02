@@ -93,6 +93,20 @@ def test_create_scan_has_spark_dialect(
     assert isinstance(scanner.dialect, SparkDialect)
 
 
+def test_scan_execute_data_frame_columns_in_scan_columns(
+    spark_session: SparkSession,
+    scan_data_frame_path: Path,
+    df: DataFrame,
+) -> None:
+    """
+    After the scan execute de data frame columns should be present in the scan
+    columns.
+    """
+    scanner = scan.pre_execute(scan_data_frame_path, df)
+    scanner.execute()
+    assert all(column in scanner.scan_columns.keys() for column in df.columns)
+
+
 def test_scan_execute_gives_row_count_of_five(
     scan_data_frame_path: Path, df: DataFrame
 ) -> None:
