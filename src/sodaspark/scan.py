@@ -1,5 +1,6 @@
 from typing import Union
 from pathlib import Path
+from typing import List, Tuple
 
 from pyspark.sql import DataFrame, SparkSession
 
@@ -30,6 +31,34 @@ class _SparkDialect(SparkDialect):
         spark_session = SparkSession.builder.getOrCreate()
         return spark_session
 
+    def sql_columns_metadata(
+        self, table_name: str
+    ) -> List[Tuple[str, str, str]]:
+        """
+        Get the meta data for the table.
+
+        Parameters
+        ----------
+        table_name : str
+            The table name.
+
+        Returns
+        -------
+        out : List[Tuple[str]]
+            A list with:
+            1) The column name.
+            2) The data type.
+            3) Nullable or not
+        """
+        spark_session = self.create_connection()
+        response = spark_session.sql(
+            f"DESCRIBE TABLE {self.database}.{table_name}"
+        )
+        return [
+            (str(row.col_name), str(row.data_type), "YES")
+            for row in response.collect()
+        ]
+
 
 def create_scan_yml(scan_yml_file: Union[str, Path]) -> ScanYml:
     """
@@ -57,8 +86,8 @@ def create_scan_yml(scan_yml_file: Union[str, Path]) -> ScanYml:
 def create_warehouse_yml() -> WarehouseYml:
     """Create Spark a ware house yml."""
     warehouse_yml = WarehouseYml(
-        dialect=_SparkDialect(),
         name="sodaspark",
+        dialect=_SparkDialect(),
     )
     return warehouse_yml
 
