@@ -213,3 +213,5 @@ def execute(scan_yml_file: Union[str, Path], df: DataFrame) -> DataFrame:
     """
     scanner = pre_execute(scan_yml_file, df)
     scanner.execute()
+    results = measurements_to_data_frame(scanner.scan_result.measurements)
+    return results
