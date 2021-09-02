@@ -11,9 +11,47 @@ from sodasql.scan.measurement import Measurement
 from sodaspark import scan
 
 
+SCAN_CONTENT = """
+table_name: demodata
+metrics:
+    - row_count
+    - missing_count
+    - missing_percentage
+    - values_count
+    - values_percentage
+    - valid_count
+    - valid_percentage
+    - invalid_count
+    - invalid_percentage
+    - min_length
+    - max_length
+    - avg_length
+    - min
+    - max
+    - avg
+    - sum
+    - variance
+    - stddev
+tests:
+    - row_count > 0
+columns:
+    id:
+        valid_format: uuid
+        tests:
+        - invalid_percentage == 0
+    feepct:
+        valid_format: number_percentage
+        tests:
+        - invalid_percentage == 0
+"""
+
+
 @pytest.fixture
-def scan_data_frame_path() -> Path:
-    return Path(__file__).parent.absolute() / "data/scan_data_frame.yml"
+def scan_data_frame_path(tmp_path: Path) -> Path:
+    scan_path = tmp_path / "table.yml"
+    with scan_path.open("w") as f:
+        f.write(SCAN_CONTENT.strip())
+    return scan_path
 
 
 @dataclass
