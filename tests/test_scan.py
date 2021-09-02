@@ -154,6 +154,8 @@ def test_scan_execute_gives_row_count_of_five(
 
     scan_results = scan.execute(scan_data_frame_path, df)
 
-    row_count = scan_results.select(F.col("row_count")).first().id
+    row_count = (
+        scan_results.where(F.col("metric") == "row_count").first().value
+    )
 
-    assert row_count == 5
+    assert row_count == "6"
