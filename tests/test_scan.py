@@ -146,19 +146,6 @@ def test_scan_execute_data_frame_columns_in_scan_result_measurements(
     assert len(set(df.columns) - scan_result_columns) == 0
 
 
-def test_scan_execute_row_count_in_scan_result_measurements(
-    spark_session: SparkSession,
-    scan_data_frame_path: Path,
-    df: DataFrame,
-) -> None:
-    """The "row_count" should be in the measurements results."""
-    scan_result = scan.execute(scan_data_frame_path, df)
-    assert any(
-        "row_count" == measurement.metric
-        for measurement in scan_result.measurements
-    )
-
-
 def is_equal_or_both_none(left: Any, right: Any) -> bool:
     """
     Check if left and right are equal or both None.
