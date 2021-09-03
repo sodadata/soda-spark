@@ -6,12 +6,17 @@ setup(
     version="0.1.0",
     description="Soda SQL API for PySpark data frame",
     author="Soda",
+    install_requires=[
+        "soda-sql==2.0.0b27",  # TODO: Replace version pin with version range
+        "soda-sql-spark==2.1.0b14",  # TODO: Replace version pin with version range
+        "pyspark>=3.0.0,<4.0.0",
+    ],
     extras_require={
         "dev": [
             "pre-commit==2.14.1",
             "pytest-spark==0.6.0",
             "pytest-cov==2.12.1",
-            "pyspark==3.1.2",
+            "pandas>=1.3.2,<2.0.0",
         ]
     },
     package_dir={"": "src"},
