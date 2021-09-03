@@ -91,3 +91,4 @@ target/
 
 # Pytest
 pytest-output.xml
+pytest-coverage.xml
