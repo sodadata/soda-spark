@@ -53,3 +53,43 @@ jobs:
 
     - name: Test with tox
       run: tox
+
+  publish-pypi:
+      name: Build & Publish Package
+      if: contains(github.ref, 'refs/tags/')
+      timeout-minutes: 10
+      runs-on: ubuntu-20.04
+      needs: [ run-tests ]
+      env:
+        JOB_ID: ${{ github.job }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        REPORTS_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      steps:
+        - uses: actions/checkout@v2
+        - name: Setup Python 3.8
+          uses: actions/setup-python@v2
+          with:
+            python-version: 3.8
+        - name: Setup dependencies
+          run: pip install --upgrade setuptools wheel twine
+        - name: Get version
+          id: get_version
+          run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        - name: Build and publish packages
+          # Hacky version for now :)
+          run: |
+            cd core
+            python3 setup.py sdist bdist_wheel
+            twine upload dist/*
+            cd ../packages
+            for pack in *
+            do
+              pushd .
+              cd $pack
+              python3 setup.py sdist bdist_wheel
+              twine upload dist/*
+              popd
+            done
