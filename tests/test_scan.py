@@ -1,10 +1,10 @@
 import datetime as dt
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import pytest
-from pandas import testing as pd_testing
-from pyspark.sql import DataFrame, SparkSession, functions as F, types as T
+from pyspark.sql import DataFrame, SparkSession, types as T
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.measurement import Measurement
 
@@ -68,23 +68,15 @@ class Row:
 def df(spark_session: SparkSession) -> DataFrame:
     """A spark data frame to be used in the tests."""
 
+    date = dt.date(2021, 1, 1)
     id = "a76824f0-50c0-11eb-8be8-88e9fe6293fd"
     data = [
-        Row(id, "Paula Landry", 3006, dt.date(2021, 1, 1), "28,42 %", "UK"),
-        Row(
-            id,
-            "Kevin Crawford",
-            7243,
-            dt.date(2021, 1, 1),
-            "22,75 %",
-            "Netherlands",
-        ),
-        Row(id, "Kimberly Green", 6589, dt.date(2021, 1, 1), "11,92 %", "US"),
-        Row(id, "William Fox", 1972, dt.date(2021, 1, 1), "14,26 %", "UK"),
-        Row(
-            id, "Cynthia Gonzales", 3687, dt.date(2021, 1, 1), "18,32 %", "US"
-        ),
-        Row(id, "Kim Brown", 1277, dt.date(2021, 1, 1), "16,37 %", "US"),
+        Row(id, "Paula Landry", 3006, date, "28,42 %", "UK"),
+        Row(id, "Kevin Crawford", 7243, date, "22,75 %", "NL"),
+        Row(id, "Kimberly Green", 6589, date, "11,92 %", "US"),
+        Row(id, "William Fox", 1972, date, "14,26 %", "UK"),
+        Row(id, "Cynthia Gonzales", 3687, date, "18,32 %", "US"),
+        Row(id, "Kim Brown", 1277, date, "16,37 %", "US"),
     ]
 
     schema = T.StructType(
@@ -133,67 +125,78 @@ def test_create_scan_has_spark_dialect(
     assert isinstance(scanner.dialect, SparkDialect)
 
 
-def test_scan_execute_data_frame_columns_in_scan_columns(
+def test_scan_execute_data_frame_columns_in_scan_result_measurements(
     spark_session: SparkSession,
     scan_data_frame_path: Path,
     df: DataFrame,
 ) -> None:
-    """
-    After the scan execute de data frame columns should be present in the scan
-    columns.
-    """
-    scanner = scan.pre_execute(scan_data_frame_path, df)
-    scanner.execute()
-    assert all(column in scanner.scan_columns.keys() for column in df.columns)
+    """We expect the columns to be present in the scan result measurements."""
+    scan_result = scan.execute(scan_data_frame_path, df)
+    scan_result_columns = set(
+        measurement.column_name for measurement in scan_result.measurements
+    )
+    assert len(set(df.columns) - scan_result_columns) == 0
 
 
-def test_scan_execute_row_count_in_scan_result_measurements(
-    spark_session: SparkSession,
+def is_equal_or_both_none(left: Any, right: Any) -> bool:
+    """
+    Check if left and right are equal or both None.
+
+    Parameters
+    ----------
+    left: Any :
+        Right element.
+    right: Any
+        Left element.
+
+    Returns
+    -------
+    out : bool
+        True, if the left and right are equal or both None. False, otherwise.
+    """
+    return (left == right) or (left is None and right is None)
+
+
+def is_same_measurement(left: Measurement, right: Measurement) -> bool:
+    """
+    Check if the measurements are the same.
+
+    Parameters
+    ----------
+    left : Measurement
+        The left measurement.
+    right : Measurement
+        The right measurement.
+
+    Returns
+    -------
+    out : bool
+        True if the measurements are the same, false otherwise.
+    """
+    return (
+        left.metric == right.metric
+        and is_equal_or_both_none(left.column_name, right.column_name)
+        and is_equal_or_both_none(left.value, right.value)
+        and is_equal_or_both_none(left.group_values, right.group_values)
+    )
+
+
+@pytest.mark.parametrize(
+    "measurement",
+    [
+        Measurement(metric="row_count", column_name=None, value=6),
+    ],
+)
+def test_scan_execute_contains_expected_metric(
     scan_data_frame_path: Path,
     df: DataFrame,
+    measurement: Measurement,
 ) -> None:
-    """The "row_count" should be in the measurements results."""
-    scanner = scan.pre_execute(scan_data_frame_path, df)
-    scanner.execute()
+    """Valid if the expected measurement is present."""
+
+    scan_result = scan.execute(scan_data_frame_path, df)
+
     assert any(
-        "row_count" == measurement.metric
-        for measurement in scanner.scan_result.measurements
+        is_same_measurement(measurement, output_measurement)
+        for output_measurement in scan_result.measurements
     )
-
-
-def test_measurements_to_data_frame_example(
-    spark_session: SparkSession,
-) -> None:
-    """Convert and valid an example list of measurements."""
-    expected = spark_session.createDataFrame(
-        [
-            {"metric": "metric", "columnName": "id", "value": "10"},
-            {"metric": "metric", "columnName": "name", "value": "-30"},
-            {"metric": "another_metric", "columnName": "id", "value": "999"},
-        ]
-    )
-
-    measurements = [
-        Measurement(metric="metric", column_name="id", value=10),
-        Measurement(metric="metric", column_name="name", value=-30),
-        Measurement(metric="another_metric", column_name="id", value=999),
-    ]
-    out = scan.measurements_to_data_frame(measurements).select(
-        *[F.col(column) for column in expected.columns]
-    )
-
-    pd_testing.assert_frame_equal(expected.toPandas(), out.toPandas())
-
-
-def test_scan_execute_gives_row_count_of_five(
-    scan_data_frame_path: Path, df: DataFrame
-) -> None:
-    """The scan execute should give us a row count of five."""
-
-    scan_results = scan.execute(scan_data_frame_path, df)
-
-    row_count = (
-        scan_results.where(F.col("metric") == "row_count").first().value
-    )
-
-    assert row_count == "6"

@@ -2,13 +2,13 @@ from typing import Union
 from pathlib import Path
 from typing import List, Tuple
 
-from pyspark.sql import DataFrame, Row, SparkSession, types as T
+from pyspark.sql import DataFrame, Row, SparkSession
 
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
-from sodasql.scan.measurement import Measurement
 from sodasql.scan.scan import Scan
+from sodasql.scan.scan_result import ScanResult
 from sodasql.scan.scan_yml import ScanYml
 from sodasql.scan.scan_yml_parser import ScanYmlParser
 from sodasql.scan.warehouse import Warehouse
@@ -133,65 +133,7 @@ def create_scan(scan_yml: ScanYml) -> Scan:
     return scan
 
 
-def pre_execute(scan_yml_file: Union[str, Path], df: DataFrame) -> Scan:
-    """
-    Function to run before the execute.
-
-    Parameters
-    ----------
-    scan_yml_file : Union[str, Path]
-        The path to a scan file.
-    df: DataFrame
-        The data frame to be scanned.
-
-    Returns
-    -------
-    out : Scan
-        The scan object.
-    """
-    scan_yml = create_scan_yml(scan_yml_file)
-    df.createOrReplaceGlobalTempView(scan_yml.table_name)
-    scan = create_scan(scan_yml)
-    return scan
-
-
-def measurements_to_data_frame(measurements: List[Measurement]) -> DataFrame:
-    """
-    Convert measurements to a data frame.
-
-    Parameters
-    ----------
-    measurements: List[Measurement]
-        The measurements.
-
-    Returns
-    -------
-    out : DataFrame
-        The measurements as data frame.
-    """
-    schema_group_values = T.StructType(
-        [
-            T.StructField("group", T.StringType(), True),
-            T.StructField("value", T.StringType(), True),
-        ]
-    )
-    schema = T.StructType(
-        [
-            T.StructField("metric", T.StringType(), True),
-            T.StructField("columnName", T.StringType(), True),
-            T.StructField("value", T.StringType(), True),
-            T.StructField("groupValues", schema_group_values, True),
-        ]
-    )
-
-    spark_session = SparkSession.builder.getOrCreate()
-    out = spark_session.createDataFrame(
-        [measurement.to_json() for measurement in measurements], schema=schema
-    )
-    return out
-
-
-def execute(scan_yml_file: Union[str, Path], df: DataFrame) -> DataFrame:
+def execute(scan_yml_file: Union[str, Path], df: DataFrame) -> ScanResult:
     """
     Execute a scan on a data frame.
 
@@ -204,10 +146,11 @@ def execute(scan_yml_file: Union[str, Path], df: DataFrame) -> DataFrame:
 
     Returns
     -------
-    out : DataFrame
+    out : ScanResult
         The scan results.
     """
-    scanner = pre_execute(scan_yml_file, df)
-    scanner.execute()
-    results = measurements_to_data_frame(scanner.scan_result.measurements)
-    return results
+    scan_yml = create_scan_yml(scan_yml_file)
+    df.createOrReplaceGlobalTempView(scan_yml.table_name)
+    scan = create_scan(scan_yml)
+    scan.execute()
+    return scan.scan_result

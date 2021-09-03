@@ -15,7 +15,6 @@ setup(
             "pre-commit==2.14.1",
             "pytest-spark==0.6.0",
             "pytest-cov==2.12.1",
-            "pandas>=1.3.2,<2.0.0",
         ]
     },
     package_dir={"": "src"},
