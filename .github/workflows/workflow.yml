@@ -71,7 +71,7 @@ jobs:
       run: |
         sudo apt-get install libsasl2-dev
         python -m pip install --upgrade pip
-        python -m pip install twin wheel setuptools
+        python -m pip install twine wheel setuptools
 
     - name: Test release
       run: |
@@ -123,7 +123,7 @@ jobs:
       run: |
         sudo apt-get install libsasl2-dev
         python -m pip install --upgrade pip
-        python -m pip install twin wheel setuptools
+        python -m pip install twine wheel setuptools
 
     - name: Get version
       id: get_version
