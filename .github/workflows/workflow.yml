@@ -68,7 +68,10 @@ jobs:
         python-version: 3.9
 
     - name: Install dependencies
-      run: pip install twine wheel setuptools
+      run: |
+        sudo apt-get install libsasl2-dev
+        python -m pip install --upgrade pip
+        python -m pip install twin wheel setuptools
 
     - name: Test release
       run: |
@@ -117,7 +120,10 @@ jobs:
         python-version: 3.9
 
     - name: Install dependencies
-      run: pip install twine wheel setuptools
+      run: |
+        sudo apt-get install libsasl2-dev
+        python -m pip install --upgrade pip
+        python -m pip install twin wheel setuptools
 
     - name: Get version
       id: get_version
