@@ -192,7 +192,7 @@ def test_scan_execute_contains_expected_metric(
     df: DataFrame,
     measurement: Measurement,
 ) -> None:
-    """Valid if the expect measurements are present."""
+    """Valid if the expected measurement is present."""
 
     scan_result = scan.execute(scan_data_frame_path, df)
 
