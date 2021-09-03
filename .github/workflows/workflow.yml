@@ -47,7 +47,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get install libsasl2-dev gcc
+        sudo apt-get install libsasl2-dev
         python -m pip install --upgrade pip
         python -m pip install tox
 
