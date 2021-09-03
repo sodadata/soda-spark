@@ -153,11 +153,10 @@ def test_scan_execute_row_count_in_scan_result_measurements(
     df: DataFrame,
 ) -> None:
     """The "row_count" should be in the measurements results."""
-    scanner = scan.pre_execute(scan_data_frame_path, df)
-    scanner.execute()
+    scan_result = scan.execute(scan_data_frame_path, df)
     assert any(
         "row_count" == measurement.metric
-        for measurement in scanner.scan_result.measurements
+        for measurement in scan_result.measurements
     )
 
 
