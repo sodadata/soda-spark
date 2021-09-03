@@ -47,26 +47,9 @@ pip install soda-spark
 >>> with tempfile.NamedTemporaryFile("w+") as temp:
 ...     _ = temp.write(scan_definition.strip())     # suppress output for doctest
 ...     _ = temp.seek(0)                            # confirm write for doctest
-...     results = scan.execute(temp.name, df)
+...     scan_result = scan.execute(temp.name, df)
 >>>
->>> results.show()
-+------------------+----------+--------------------+-----------+
-|            metric|columnName|               value|groupValues|
-+------------------+----------+--------------------+-----------+
-|            schema|      null|[{logicalType=tex...|       null|
-|         row_count|      null|                   2|       null|
-|      values_count|        id|                   2|       null|
-|       valid_count|        id|                   2|       null|
-|        min_length|        id|                  36|       null|
-|        min_length|      name|                  12|       null|
-|               max|      size|                7243|       null|
-|missing_percentage|        id|                 0.0|       null|
-|     missing_count|        id|                   0|       null|
-| values_percentage|        id|               100.0|       null|
-|invalid_percentage|        id|                 0.0|       null|
-|     invalid_count|        id|                   0|       null|
-|  valid_percentage|        id|               100.0|       null|
-+------------------+----------+--------------------+-----------+
-<BLANKLINE>
+>>> scan_result.measurements   # doctest: +ELLIPSIS
+[Measurement(metric='schema', ...), Measurement(metric='row_count', ...), ...]
 >>>
 ```
