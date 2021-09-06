@@ -80,27 +80,27 @@ class _SparkDialect(SparkDialect):
         ]
 
 
-def create_scan_yml(scan_yml_file: Union[str, Path]) -> ScanYml:
+def create_scan_yml(scan_definition: Union[str, Path]) -> ScanYml:
     """
     Create a scan yml
 
     Parameters
     ----------
-    scan_yml_file: Union[str, Path]
-        The path to a scan file.
+    scan_definition: Union[str, Path]
+        The path to a scan file or the content of a scan file.
 
     Returns
     -------
     out :
         The scan yml.
     """
-    if Path(scan_yml_file).is_file():
+    if Path(scan_definition).is_file():
         file_system = FileSystemSingleton.INSTANCE
-        scan_yml_str = file_system.file_read_as_str(scan_yml_file)
+        scan_yml_str = file_system.file_read_as_str(scan_definition)
     else:
-        scan_yml_str = scan_yml_file
-    scan_yml_dict = YamlHelper.parse_yaml(scan_yml_str, scan_yml_file)
-    scan_yml_parser = ScanYmlParser(scan_yml_dict, str(scan_yml_file))
+        scan_yml_str = scan_definition
+    scan_yml_dict = YamlHelper.parse_yaml(scan_yml_str, scan_definition)
+    scan_yml_parser = ScanYmlParser(scan_yml_dict, str(scan_definition))
     scan_yml_parser.log()
     scan_yml = scan_yml_parser.scan_yml
     return scan_yml
@@ -136,14 +136,14 @@ def create_scan(scan_yml: ScanYml) -> Scan:
     return scan
 
 
-def execute(scan_yml_file: Union[str, Path], df: DataFrame) -> ScanResult:
+def execute(scan_definition: Union[str, Path], df: DataFrame) -> ScanResult:
     """
     Execute a scan on a data frame.
 
     Parameters
     ----------
-    scan_yml_file : Union[str, Path]
-        The path to a scan file.
+    scan_definition : Union[str, Path]
+        The path to a scan file or the content of a scan file.
     df: DataFrame
         The data frame to be scanned.
 
@@ -152,7 +152,7 @@ def execute(scan_yml_file: Union[str, Path], df: DataFrame) -> ScanResult:
     out : ScanResult
         The scan results.
     """
-    scan_yml = create_scan_yml(scan_yml_file)
+    scan_yml = create_scan_yml(scan_definition)
     df.createOrReplaceGlobalTempView(scan_yml.table_name)
     scan = create_scan(scan_yml)
     scan.execute()
