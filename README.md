@@ -43,11 +43,7 @@ pip install soda-spark
 ...     tests:
 ...     - invalid_percentage == 0
 ... """)
->>>
->>> with tempfile.NamedTemporaryFile("w+") as temp:
-...     _ = temp.write(scan_definition.strip())     # suppress output for doctest
-...     _ = temp.seek(0)                            # confirm write for doctest
-...     scan_result = scan.execute(temp.name, df)
+>>> scan_result = scan.execute(scan_definition, df)
 >>>
 >>> scan_result.measurements   # doctest: +ELLIPSIS
 [Measurement(metric='schema', ...), Measurement(metric='row_count', ...), ...]
