@@ -5,6 +5,8 @@ on:
   push:
     branches:
     - main
+    tags:
+    - '*'
 
 jobs:
   pre-commit:
@@ -94,7 +96,7 @@ jobs:
 
     - name: Get version
       id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      run: echo ::set-output name=VERSION::$(python setup.py --version)
 
     - name: Find release type
       id: get_release_type
@@ -135,7 +137,7 @@ jobs:
 
     - name: Get version
       id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      run: echo ::set-output name=VERSION::$(python setup.py --version)
 
     - name: Release to pypi
       env:
