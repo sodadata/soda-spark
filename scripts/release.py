@@ -4,11 +4,9 @@ Create a release.
 Source: https://github.com/tox-dev/tox/blob/master/tasks/release.py
 """
 from pathlib import Path
-from typing import Tuple
 
 from git import Commit, Head, Remote, Repo, TagReference
 from packaging.version import Version
-
 
 ROOT_SRC_DIR = Path(__file__).parents[1]
 
@@ -33,7 +31,7 @@ def main(version_str: str) -> None:
     print("WARNING: you have switched to the release branch")
 
 
-def create_release_branch(repo: Repo, version: Version) -> Tuple[Remote, Head]:
+def create_release_branch(repo: Repo, version: Version) -> tuple[Remote, Head]:
     print("create release branch from upstream main")
     upstream = get_upstream(repo)
     upstream.fetch()
@@ -63,9 +61,9 @@ def tag_release_commit(
     print("tag release commit")
     existing_tags = [x.name for x in repo.tags]
     if version in existing_tags:
-        print("delete existing tag {}".format(version))
+        print(f"delete existing tag {version}")
         repo.delete_tag(version)
-    print("create tag {}".format(version))
+    print(f"create tag {version}")
     tag = repo.create_tag(version, ref=release_commit, force=True)
     return tag
 

@@ -1,9 +1,8 @@
-from typing import Union
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List, Tuple
 
 from pyspark.sql import DataFrame, Row, SparkSession
-
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
@@ -53,7 +52,7 @@ class _SparkDialect(SparkDialect):
 
     def sql_columns_metadata(
         self, table_name: str
-    ) -> List[Tuple[str, str, str]]:
+    ) -> list[tuple[str, str, str]]:
         """
         Get the meta data for the table.
 
@@ -80,7 +79,7 @@ class _SparkDialect(SparkDialect):
         ]
 
 
-def create_scan_yml(scan_definition: Union[str, Path]) -> ScanYml:
+def create_scan_yml(scan_definition: str | Path) -> ScanYml:
     """
     Create a scan yml
 
@@ -142,7 +141,7 @@ def create_scan(scan_yml: ScanYml) -> Scan:
     return scan
 
 
-def execute(scan_definition: Union[str, Path], df: DataFrame) -> ScanResult:
+def execute(scan_definition: str | Path, df: DataFrame) -> ScanResult:
     """
     Execute a scan on a data frame.
 
