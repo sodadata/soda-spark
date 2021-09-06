@@ -113,7 +113,7 @@ jobs:
         body: |
           Soda spark release v${{ steps.get_version.outputs.VERSION }}
           ``` sh
-          $ pip install soda-spark==${{env.version_number}}
+          $ pip install soda-spark==${{ steps.get_version.outputs.VERSION }}
           ```
 
   pypi-release:
