@@ -9,3 +9,11 @@ build-backend = 'setuptools.build_meta'
 [tool.black]
 line-length = 79
 target-version = ['py39']
+
+[tool.setuptools_scm]
+write_to = "src/sodapark/_version.py"
+write_to_template = """
+from __future__ import unicode_literals
+
+__version__ = {version!r}
+"""
