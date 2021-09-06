@@ -96,6 +96,12 @@ jobs:
       id: get_version
       run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
+    - name: Find release type
+      id: get_release_type
+      env:
+        IS_PRERELEASE: ${{ contains(env.version_number, 'rc') ||  contains(env.version_number, 'b') }}
+      run: echo ::set-output name=isPrerelease::$IS_PRERELEASE
+
     - name: Create GitHub release
       uses: actions/create-release@v1
       env:
@@ -103,6 +109,7 @@ jobs:
       with:
         tag_name: v${{ steps.get_version.outputs.VERSION }}
         release_name: soda-spark v${{ steps.get_version.outputs.VERSION }}
+        prerelease: ${{ steps.get_release_type.outputs.IS_PRERELEASE }}
         body: |
           Soda spark release v${{ steps.get_version.outputs.VERSION }}
           ``` sh
