@@ -34,6 +34,8 @@ metrics:
 - sum
 - variance
 - stddev
+metric_groups:
+- duplicates
 tests:
 - row_count > 0
 columns:
@@ -193,6 +195,27 @@ def is_same_measurement(left: Measurement, right: Measurement) -> bool:
     ],
 )
 def test_scan_execute_contains_expected_metric(
+    scan_data_frame_path: Path,
+    df: DataFrame,
+    measurement: Measurement,
+) -> None:
+    """Valid if the expected measurement is present."""
+
+    scan_result = scan.execute(scan_data_frame_path, df)
+
+    assert any(
+        is_same_measurement(measurement, output_measurement)
+        for output_measurement in scan_result.measurements
+    )
+
+
+@pytest.mark.parametrize(
+    "measurement",
+    [
+        Measurement(metric="distinct", column_name="country", value=3),
+    ],
+)
+def test_scan_execute_with_metric_groups_measurement_as_expected(
     scan_data_frame_path: Path,
     df: DataFrame,
     measurement: Measurement,
