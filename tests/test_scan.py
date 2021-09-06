@@ -47,6 +47,8 @@ columns:
     valid_format: number_percentage
     tests:
     - invalid_percentage == 0
+excluded_columns:
+- date
 """
 
 
@@ -345,3 +347,17 @@ def test_scan_execute_scan_result_does_not_contain_any_errors(
     scan_result = scan.execute(scan_data_frame_path, df)
 
     assert not scan_result.has_errors()
+
+
+def test_excluded_columns_date_is_not_present(
+    scan_data_frame_path: Path,
+    df: DataFrame,
+) -> None:
+    """The date column should not be present in the measurements."""
+
+    scan_result = scan.execute(scan_data_frame_path, df)
+
+    assert not any(
+        measurement.column_name == "date"
+        for measurement in scan_result.measurements
+    )
