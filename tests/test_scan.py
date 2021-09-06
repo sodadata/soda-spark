@@ -333,12 +333,12 @@ def test_scan_execute_scan_result_does_not_contain_any_errors(
 
 
 def test_excluded_columns_date_is_not_present(
-    scan_data_frame_path: Path,
+    scan_definition: str,
     df: DataFrame,
 ) -> None:
     """The date column should not be present in the measurements."""
 
-    scan_result = scan.execute(scan_data_frame_path, df)
+    scan_result = scan.execute(scan_definition, df)
 
     assert not any(
         measurement.column_name == "date"
