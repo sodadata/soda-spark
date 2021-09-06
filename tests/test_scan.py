@@ -7,6 +7,8 @@ import pytest
 from pyspark.sql import DataFrame, SparkSession, types as T
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.measurement import Measurement
+from sodasql.scan.test import Test
+from sodasql.scan.test_result import TestResult
 
 from sodaspark import scan
 
@@ -14,35 +16,35 @@ from sodaspark import scan
 SCAN_CONTENT = """
 table_name: demodata
 metrics:
-    - row_count
-    - missing_count
-    - missing_percentage
-    - values_count
-    - values_percentage
-    - valid_count
-    - valid_percentage
-    - invalid_count
-    - invalid_percentage
-    - min_length
-    - max_length
-    - avg_length
-    - min
-    - max
-    - avg
-    - sum
-    - variance
-    - stddev
+- row_count
+- missing_count
+- missing_percentage
+- values_count
+- values_percentage
+- valid_count
+- valid_percentage
+- invalid_count
+- invalid_percentage
+- min_length
+- max_length
+- avg_length
+- min
+- max
+- avg
+- sum
+- variance
+- stddev
 tests:
-    - row_count > 0
+- row_count > 0
 columns:
-    id:
-        valid_format: uuid
-        tests:
-        - invalid_percentage == 0
-    feepct:
-        valid_format: number_percentage
-        tests:
-        - invalid_percentage == 0
+  id:
+    valid_format: uuid
+    tests:
+    - invalid_percentage == 0
+  feepct:
+    valid_format: number_percentage
+    tests:
+    - invalid_percentage == 0
 """
 
 
@@ -185,6 +187,9 @@ def is_same_measurement(left: Measurement, right: Measurement) -> bool:
     "measurement",
     [
         Measurement(metric="row_count", column_name=None, value=6),
+        Measurement(metric="valid_count", column_name="id", value=6),
+        Measurement(metric="max_length", column_name="name", value=16),
+        Measurement(metric="sum", column_name="size", value=23774),
     ],
 )
 def test_scan_execute_contains_expected_metric(
@@ -199,6 +204,99 @@ def test_scan_execute_contains_expected_metric(
     assert any(
         is_same_measurement(measurement, output_measurement)
         for output_measurement in scan_result.measurements
+    )
+
+
+def is_same_test(left: Test, right: Test) -> bool:
+    """
+    Check if the test are the same.
+
+    Parameters
+    ----------
+    left : Test
+        The left test.
+    right : TestResult
+        The right test.
+
+    Returns
+    -------
+    out : bool
+        True if the tests are the same, false otherwise.
+    """
+    return is_equal_or_both_none(
+        left.expression, right.expression
+    ) and is_equal_or_both_none(left.column, right.column)
+
+
+def is_same_test_result(left: TestResult, right: TestResult) -> bool:
+    """
+    Check if the test results are the same.
+
+    Parameters
+    ----------
+    left : TestResult
+        The left test result.
+    right : TestResult
+        The right test result.
+
+    Returns
+    -------
+    out : bool
+        True if the tests results are the same, false otherwise.
+    """
+    return (
+        is_same_test(left.test, right.test)
+        and is_equal_or_both_none(left.passed, right.passed)
+        and is_equal_or_both_none(left.skipped, right.skipped)
+        and is_equal_or_both_none(left.values, right.values)
+        and is_equal_or_both_none(left.error, right.error)
+        and is_equal_or_both_none(left.group_values, right.group_values)
+    )
+
+
+@pytest.mark.parametrize(
+    "test_result",
+    [
+        TestResult(
+            test=Test(
+                id=None,
+                title=None,
+                expression="row_count > 0",
+                column=None,
+                metrics=[],
+            ),
+            passed=True,
+            skipped=False,
+            values={"row_count": 6},
+            error=None,
+        ),
+        TestResult(
+            test=Test(
+                id=None,
+                title=None,
+                expression="invalid_percentage == 0",
+                metrics=[],
+                column="feepct",
+            ),
+            passed=True,
+            skipped=False,
+            values={"invalid_percentage": 0.0},
+            error=None,
+        ),
+    ],
+)
+def test_scan_execute_contains_expected_test_result(
+    scan_data_frame_path: Path,
+    df: DataFrame,
+    test_result: Test,
+) -> None:
+    """Valid if the expected test result is present."""
+
+    scan_result = scan.execute(scan_data_frame_path, df)
+
+    assert any(
+        is_same_test_result(test_result, output_test_result)
+        for output_test_result in scan_result.test_results
     )
 
 
