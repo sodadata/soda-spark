@@ -14,4 +14,5 @@ setup(
              """,
         ).lstrip(),
     },
+    package_dir={"": "src"},
 )
