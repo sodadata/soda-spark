@@ -131,19 +131,6 @@ def test_create_scan_has_spark_dialect(
     assert isinstance(scanner.dialect, SparkDialect)
 
 
-def test_scan_execute_data_frame_columns_in_scan_result_measurements(
-    spark_session: SparkSession,
-    scan_data_frame_path: Path,
-    df: DataFrame,
-) -> None:
-    """We expect the columns to be present in the scan result measurements."""
-    scan_result = scan.execute(scan_data_frame_path, df)
-    scan_result_columns = set(
-        measurement.column_name for measurement in scan_result.measurements
-    )
-    assert len(set(df.columns) - scan_result_columns) == 0
-
-
 def is_equal_or_both_none(left: Any, right: Any) -> bool:
     """
     Check if left and right are equal or both None.
