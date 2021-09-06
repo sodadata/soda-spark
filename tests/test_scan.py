@@ -1,6 +1,5 @@
 import datetime as dt
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -13,7 +12,7 @@ from sodasql.scan.test_result import TestResult
 from sodaspark import scan
 
 
-SCAN_CONTENT = """
+SCAN_DEFINITION = """
 table_name: demodata
 metrics:
 - row_count
@@ -53,11 +52,8 @@ excluded_columns:
 
 
 @pytest.fixture
-def scan_data_frame_path(tmp_path: Path) -> Path:
-    scan_path = tmp_path / "table.yml"
-    with scan_path.open("w") as f:
-        f.write(SCAN_CONTENT.strip())
-    return scan_path
+def scan_definition() -> str:
+    return SCAN_DEFINITION
 
 
 @dataclass
@@ -100,10 +96,10 @@ def df(spark_session: SparkSession) -> DataFrame:
 
 
 def test_create_scan_yml_table_name_is_demodata(
-    scan_data_frame_path: Path,
+    scan_definition: str,
 ) -> None:
     """Validate the table name is as expected."""
-    scan_yml = scan.create_scan_yml(scan_data_frame_path)
+    scan_yml = scan.create_scan_yml(scan_definition)
     assert scan_yml.table_name == "demodata"
 
 
@@ -123,10 +119,10 @@ def test_create_warehouse_has_spark_dialect(
 
 def test_create_scan_has_spark_dialect(
     spark_session: SparkSession,
-    scan_data_frame_path: Path,
+    scan_definition: str,
 ) -> None:
     """The scan should have the spark dialect"""
-    scan_yml = scan.create_scan_yml(scan_data_frame_path)
+    scan_yml = scan.create_scan_yml(scan_definition)
     scanner = scan.create_scan(scan_yml)
     assert isinstance(scanner.dialect, SparkDialect)
 
@@ -184,13 +180,13 @@ def is_same_measurement(left: Measurement, right: Measurement) -> bool:
     ],
 )
 def test_scan_execute_contains_expected_metric(
-    scan_data_frame_path: Path,
+    scan_definition: str,
     df: DataFrame,
     measurement: Measurement,
 ) -> None:
     """Valid if the expected measurement is present."""
 
-    scan_result = scan.execute(scan_data_frame_path, df)
+    scan_result = scan.execute(scan_definition, df)
 
     assert any(
         is_same_measurement(measurement, output_measurement)
@@ -205,13 +201,13 @@ def test_scan_execute_contains_expected_metric(
     ],
 )
 def test_scan_execute_with_metric_groups_measurement_as_expected(
-    scan_data_frame_path: Path,
+    scan_definition: str,
     df: DataFrame,
     measurement: Measurement,
 ) -> None:
     """Valid if the expected measurement is present."""
 
-    scan_result = scan.execute(scan_data_frame_path, df)
+    scan_result = scan.execute(scan_definition, df)
 
     assert any(
         is_same_measurement(measurement, output_measurement)
@@ -311,13 +307,13 @@ def is_same_test_result(left: TestResult, right: TestResult) -> bool:
     ],
 )
 def test_scan_execute_contains_expected_test_result(
-    scan_data_frame_path: Path,
+    scan_definition: str,
     df: DataFrame,
     test_result: Test,
 ) -> None:
     """Valid if the expected test result is present."""
 
-    scan_result = scan.execute(scan_data_frame_path, df)
+    scan_result = scan.execute(scan_definition, df)
 
     assert any(
         is_same_test_result(test_result, output_test_result)
@@ -326,23 +322,23 @@ def test_scan_execute_contains_expected_test_result(
 
 
 def test_scan_execute_scan_result_does_not_contain_any_errors(
-    scan_data_frame_path: Path,
+    scan_definition: str,
     df: DataFrame,
 ) -> None:
     """The scan results should not contain any erros."""
 
-    scan_result = scan.execute(scan_data_frame_path, df)
+    scan_result = scan.execute(scan_definition, df)
 
     assert not scan_result.has_errors()
 
 
 def test_excluded_columns_date_is_not_present(
-    scan_data_frame_path: Path,
+    scan_definition: str,
     df: DataFrame,
 ) -> None:
     """The date column should not be present in the measurements."""
 
-    scan_result = scan.execute(scan_data_frame_path, df)
+    scan_result = scan.execute(scan_definition, df)
 
     assert not any(
         measurement.column_name == "date"
