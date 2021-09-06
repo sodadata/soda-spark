@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
     - tox
-    - pre-commit
+    - "pre-commit"
     steps:
     - uses: actions/checkout@v2
 
