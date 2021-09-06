@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 setup(
     name="soda-spark",
     packages=find_packages("src/"),
-    version="0.1.0",
+    version="0.1.0.dev",
     description="Soda SQL API for PySpark data frame",
     author="Soda",
     install_requires=[
