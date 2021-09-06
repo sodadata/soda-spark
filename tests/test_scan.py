@@ -185,6 +185,9 @@ def is_same_measurement(left: Measurement, right: Measurement) -> bool:
     "measurement",
     [
         Measurement(metric="row_count", column_name=None, value=6),
+        Measurement(metric="valid_count", column_name="id", value=6),
+        Measurement(metric="max_length", column_name="name", value=16),
+        Measurement(metric="sum", column_name="size", value=23774),
     ],
 )
 def test_scan_execute_contains_expected_metric(
