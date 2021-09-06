@@ -4,6 +4,8 @@ on:
   workflow_run:
     workflows:
     - Test
+    branches:
+    - release-*
     types:
     - completed
 
