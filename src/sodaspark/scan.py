@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Union
 
 from pyspark.sql import DataFrame, Row, SparkSession
 from sodasql.common.yaml_helper import YamlHelper
@@ -78,7 +79,7 @@ class _SparkDialect(SparkDialect):
         ]
 
 
-def create_scan_yml(scan_definition: Union[str, Path]) -> ScanYml:
+def create_scan_yml(scan_definition: str | Path) -> ScanYml:
     """
     Create a scan yml
 
@@ -140,7 +141,7 @@ def create_scan(scan_yml: ScanYml) -> Scan:
     return scan
 
 
-def execute(scan_definition: Union[str, Path], df: DataFrame) -> ScanResult:
+def execute(scan_definition: str | Path, df: DataFrame) -> ScanResult:
     """
     Execute a scan on a data frame.
 
