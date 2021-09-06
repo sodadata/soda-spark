@@ -200,3 +200,14 @@ def test_scan_execute_contains_expected_metric(
         is_same_measurement(measurement, output_measurement)
         for output_measurement in scan_result.measurements
     )
+
+
+def test_scan_execute_scan_result_does_not_contain_any_errors(
+    scan_data_frame_path: Path,
+    df: DataFrame,
+) -> None:
+    """The scan results should not contain any erros."""
+
+    scan_result = scan.execute(scan_data_frame_path, df)
+
+    assert not scan_result.has_errors()
