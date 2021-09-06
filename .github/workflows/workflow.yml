@@ -55,11 +55,11 @@ jobs:
       run: tox
 
   test-release:
-    # if: contains(github.ref, 'refs/tags/')
+    if: contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-    # needs:
-    # - tox
-    # - pre-commit
+    needs:
+    - tox
+    - pre-commit
     steps:
     - uses: actions/checkout@v2
 
