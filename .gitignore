@@ -94,4 +94,4 @@ pytest-output.xml
 pytest-coverage.xml
 
 # Version
-src/sodaspark/_version
+src/sodaspark/_version.py
