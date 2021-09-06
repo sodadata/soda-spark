@@ -94,11 +94,17 @@ def create_scan_yml(scan_definition: Union[str, Path]) -> ScanYml:
     out :
         The scan yml.
     """
-    if Path(scan_definition).is_file():
-        file_system = FileSystemSingleton.INSTANCE
-        scan_yml_str = file_system.file_read_as_str(scan_definition)
-    else:
+    try:
+        is_file = Path(scan_definition).is_file()
+    except OSError:
         scan_yml_str = scan_definition
+    else:
+        if is_file:
+            file_system = FileSystemSingleton.INSTANCE
+            scan_yml_str = file_system.file_read_as_str(scan_definition)
+        else:
+            scan_yml_str = scan_definition
+
     scan_yml_dict = YamlHelper.parse_yaml(scan_yml_str, scan_definition)
     scan_yml_parser = ScanYmlParser(scan_yml_dict, str(scan_definition))
     scan_yml_parser.log()
