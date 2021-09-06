@@ -92,3 +92,6 @@ target/
 # Pytest
 pytest-output.xml
 pytest-coverage.xml
+
+# Version
+src/sodaspark/_version.py
