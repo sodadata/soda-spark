@@ -1,9 +1,7 @@
-from typing import Union
 from pathlib import Path
-from typing import List, Tuple
+from typing import Union
 
 from pyspark.sql import DataFrame, Row, SparkSession
-
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
@@ -53,7 +51,7 @@ class _SparkDialect(SparkDialect):
 
     def sql_columns_metadata(
         self, table_name: str
-    ) -> List[Tuple[str, str, str]]:
+    ) -> list[tuple[str, str, str]]:
         """
         Get the meta data for the table.
 

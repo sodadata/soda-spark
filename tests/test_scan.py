@@ -3,14 +3,14 @@ from dataclasses import dataclass
 from typing import Any
 
 import pytest
-from pyspark.sql import DataFrame, SparkSession, types as T
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import types as T  # noqa: N812
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.measurement import Measurement
 from sodasql.scan.test import Test
 from sodasql.scan.test_result import TestResult
 
 from sodaspark import scan
-
 
 SCAN_DEFINITION = """
 table_name: demodata
