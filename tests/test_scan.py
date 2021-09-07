@@ -176,24 +176,25 @@ def test_scan_execute_with_metric_groups_measurement_as_expected(
     [
         TestResult(
             test=Test(
-                id=None,
-                title=None,
+                id='{"expression":"row_count > 0"}',
+                title="test(row_count > 0)",
                 expression="row_count > 0",
+                metrics=["row_count"],
                 column=None,
-                metrics=[],
             ),
             passed=True,
             skipped=False,
             values={"row_count": 6},
             error=None,
+            group_values=None,
         ),
         TestResult(
             test=Test(
-                id=None,
-                title=None,
+                id='{"column":"id","expression":"invalid_percentage == 0"}',
+                title="column(id) test(invalid_percentage == 0)",
                 expression="invalid_percentage == 0",
+                metrics=["invalid_percentage"],
                 column="id",
-                metrics=[],
             ),
             passed=True,
             skipped=False,
@@ -202,16 +203,17 @@ def test_scan_execute_with_metric_groups_measurement_as_expected(
         ),
         TestResult(
             test=Test(
-                id=None,
-                title=None,
+                id='{"column":"feepct","expression":"invalid_percentage == 0"}',
+                title="column(feepct) test(invalid_percentage == 0)",
                 expression="invalid_percentage == 0",
-                metrics=[],
+                metrics=["invalid_percentage"],
                 column="feepct",
             ),
             passed=True,
             skipped=False,
             values={"invalid_percentage": 0.0},
             error=None,
+            group_values=None,
         ),
     ],
 )
