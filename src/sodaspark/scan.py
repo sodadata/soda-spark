@@ -27,6 +27,12 @@ class Cursor:
     def __init__(self) -> None:
         self._df: DataFrame | None = None
 
+    def __enter__(self) -> Cursor:
+        return self
+
+    def __exit__(self) -> None:
+        self.close()
+
     @property
     def description(self) -> tuple:
         """
