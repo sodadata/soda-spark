@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import datetime as dt
+import json
 from dataclasses import dataclass
 
 import pytest
@@ -8,6 +11,7 @@ from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.measurement import Measurement
 from sodasql.scan.test import Test
 from sodasql.scan.test_result import TestResult
+from sodasql.soda_server_client.soda_server_client import SodaServerClient
 
 from sodaspark import scan
 
@@ -48,6 +52,73 @@ columns:
 excluded_columns:
 - date
 """
+
+
+class MockSodaServerClient(SodaServerClient):
+    """
+    Source
+    ------
+    https://github.com/sodadata/soda-sql/blob/main/tests/common/mock_soda_server_client.py
+    """
+
+    # noinspection PyMissingConstructor
+    def __init__(self) -> None:
+        self.requests: Any = []
+        self.commands: Any = []
+        self.host: str = "MockSodaServerClient"
+        self.token: str = "mocktoken"
+        self.file_uploads: dict = {}
+
+    def execute_command(self, command: dict) -> Any:
+        # Serializing is important as it ensures no exceptions occur during serialization
+        json.dumps(command, indent=2)
+        # Still we use the unserialized version to check the results as that is easier
+        self.commands.append(command)
+
+        if command["type"] == "sodaSqlScanStart":
+            return {"scanReference": "scanref-123"}
+
+        if command["type"] == "sodaSqlCustomMetrics":
+            return [
+                {
+                    "id": "f255b6af-f2ad-485c-8222-416ccbe4b6e2",
+                    "type": "missingValuesCount",
+                    "columnName": "id",
+                    "datasetId": "901d99c4-2dfe-43f9-acf3-f0344fc690a0",
+                    "filter": {
+                        "type": "equals",
+                        "left": {"type": "columnValue", "columnName": "date"},
+                        "right": {"type": "time", "scanTime": True},
+                    },
+                    "custom": True,
+                }
+            ]
+
+    def execute_query(self, command: dict) -> Any:
+        if command["type"] == "sodaSqlCustomMetrics":
+            return [
+                {
+                    "id": "f255b6af-f2ad-485c-8222-416ccbe4b6e2",
+                    "type": "missingValuesCount",
+                    "columnName": "id",
+                    "datasetId": "901d99c4-2dfe-43f9-acf3-f0344fc690a0",
+                    "filter": {
+                        "type": "greaterThanOrEqual",
+                        "left": {"type": "columnValue", "columnName": "date"},
+                        "right": {"type": "time", "scanTime": True},
+                    },
+                    "custom": True,
+                }
+            ]
+
+        raise RuntimeError(f"{command['type']} is not supported yet")
+
+    def _upload_file(self, headers: str, temp_file: Any) -> Any:
+        file_id = f"file-{str(len(self.file_uploads))}"
+        data = temp_file.read().decode("utf-8")
+        self.file_uploads[file_id] = {"headers": headers, "data": data}
+        temp_file.close()
+        return {"fileId": file_id}
 
 
 @pytest.fixture
