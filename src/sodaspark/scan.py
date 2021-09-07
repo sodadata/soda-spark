@@ -43,6 +43,15 @@ class Cursor:
         https://github.com/mkleehammer/pyodbc/wiki/Cursor#description
         """
 
+    def close(self) -> None:
+        """
+        Close the connection.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Cursor#close
+        """
+
     def execute(self, sql: str, *parameters: Any) -> None:
         """
         Execute a sql statement.
