@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import TracebackType
 from typing import Any
 
 from pyspark.sql import DataFrame, Row, SparkSession
@@ -30,8 +31,14 @@ class Cursor:
     def __enter__(self) -> Cursor:
         return self
 
-    def __exit__(self) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: Exception | None,
+        exc_tb: TracebackType | None,
+    ) -> bool:
         self.close()
+        return True
 
     @property
     def description(
