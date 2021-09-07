@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 from pathlib import Path
 from types import TracebackType
 from typing import Any
@@ -14,6 +15,7 @@ from sodasql.scan.scan_yml import ScanYml
 from sodasql.scan.scan_yml_parser import ScanYmlParser
 from sodasql.scan.warehouse import Warehouse
 from sodasql.scan.warehouse_yml import WarehouseYml
+from sodasql.soda_server_client.soda_server_client import SodaServerClient
 
 
 class Cursor:
@@ -231,7 +233,9 @@ def create_warehouse() -> Warehouse:
     return warehouse
 
 
-def create_scan(scan_yml: ScanYml) -> Scan:
+def create_scan(
+    scan_yml: ScanYml, soda_server_client: SodaServerClient | None = None
+) -> Scan:
     """
     Create a scan object
 
@@ -239,13 +243,30 @@ def create_scan(scan_yml: ScanYml) -> Scan:
     ----------
     scan_yml : ScanYml
         The scan yml.
+    soda_server_client : Optional[SodaServerClient] (default : None)
+        A soda server client.
+
+    Returns
+    -------
+    out : Scan
+        The scan.
     """
     warehouse = create_warehouse()
-    scan = Scan(warehouse=warehouse, scan_yml=scan_yml)
+    scan = Scan(
+        warehouse=warehouse,
+        scan_yml=scan_yml,
+        soda_server_client=soda_server_client,
+        time=dt.datetime.now(tz=dt.timezone.utc).isoformat(timespec="seconds"),
+    )
     return scan
 
 
-def execute(scan_definition: str | Path, df: DataFrame) -> ScanResult:
+def execute(
+    scan_definition: str | Path,
+    df: DataFrame,
+    *,
+    soda_server_client: SodaServerClient | None = None,
+) -> ScanResult:
     """
     Execute a scan on a data frame.
 
@@ -255,6 +276,8 @@ def execute(scan_definition: str | Path, df: DataFrame) -> ScanResult:
         The path to a scan file or the content of a scan file.
     df: DataFrame
         The data frame to be scanned.
+    soda_server_client : Optional[SodaServerClient] (default : None)
+        A soda server client.
 
     Returns
     -------
@@ -263,6 +286,6 @@ def execute(scan_definition: str | Path, df: DataFrame) -> ScanResult:
     """
     scan_yml = create_scan_yml(scan_definition)
     df.createOrReplaceGlobalTempView(scan_yml.table_name)
-    scan = create_scan(scan_yml)
+    scan = create_scan(scan_yml, soda_server_client=soda_server_client)
     scan.execute()
     return scan.scan_result
