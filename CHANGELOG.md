@@ -1,5 +1,3 @@
-## [0.1.1] - 2021-09-07
-
 - Update documentation:
   - Add example for executing a scan with file
   - Explain how the `soda-spark` works
