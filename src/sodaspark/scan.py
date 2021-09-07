@@ -14,6 +14,16 @@ from sodasql.scan.warehouse import Warehouse
 from sodasql.scan.warehouse_yml import WarehouseYml
 
 
+class Cursor:
+    """
+    Mock a pyodbc cursor.
+
+    Source
+    ------
+    https://github.com/mkleehammer/pyodbc/wiki/Cursor
+    """
+
+
 class Connection:
     """
     Mock a pyodbc connection.
@@ -22,6 +32,17 @@ class Connection:
     ------
     https://github.com/mkleehammer/pyodbc/wiki/Connection
     """
+
+    def cursor(self) -> Cursor:
+        """
+        Get a cursor.
+
+        Returns
+        -------
+        out : Cursor
+            The cursor.
+        """
+        return Cursor()
 
 
 class _SparkDialect(SparkDialect):
