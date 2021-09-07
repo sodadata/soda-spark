@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import DataFrame
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
@@ -14,22 +14,31 @@ from sodasql.scan.warehouse import Warehouse
 from sodasql.scan.warehouse_yml import WarehouseYml
 
 
+class Connection:
+    """
+    Mock a pyodbc connection.
+
+    Source
+    ------
+    https://github.com/mkleehammer/pyodbc/wiki/Connection
+    """
+
+
 class _SparkDialect(SparkDialect):
     def __init__(self) -> None:
         super().__init__(None)
         self.database = "global_temp"
 
-    def create_connection(self) -> SparkSession:
+    def create_connection(self) -> Connection:
         """
-        Create a connection to the spark session.
+        Create a connection.
 
         Returns
         -------
-        out : SparkSession
-            The active spark session.
+        out : Connection
+            A connection.
         """
-        spark_session = SparkSession.builder.getOrCreate()
-        return spark_session
+        return Connection()
 
     def sql_columns_metadata(
         self, table_name: str
@@ -51,7 +60,7 @@ class _SparkDialect(SparkDialect):
             3) Nullable or not
         """
         spark_session = self.create_connection()
-        response = spark_session.sql(
+        response = spark_session.sql(  # type: ignore
             f"DESCRIBE TABLE {self.database}.{table_name}"
         )
         return [
