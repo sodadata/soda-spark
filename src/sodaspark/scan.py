@@ -34,19 +34,37 @@ class Cursor:
         self.close()
 
     @property
-    def description(self) -> tuple:
+    def description(
+        self,
+    ) -> list[tuple[str, str, None, None, None, None, bool]]:
         """
         The description.
 
         Returns
         -------
-        out : tuple
-            The description
+        out : list[tuple[str, str, None, None, None, None, bool]]
+            The description.
 
         Source
         ------
         https://github.com/mkleehammer/pyodbc/wiki/Cursor#description
         """
+        if self._df is None:
+            description = list()
+        else:
+            description = [
+                (
+                    field.name,
+                    field.dataType.simpleString(),
+                    None,
+                    None,
+                    None,
+                    None,
+                    field.nullable,
+                )
+                for field in self._df.schema.fields
+            ]
+        return description
 
     def close(self) -> None:
         """
