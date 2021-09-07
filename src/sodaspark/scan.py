@@ -26,7 +26,7 @@ class Cursor:
     """
 
     def __init__(self) -> None:
-        self._df: DataFrame = DataFrame()
+        self._df: DataFrame | None = None
 
     def execute(self, sql: str, *parameters: Any) -> None:
         """
@@ -53,16 +53,24 @@ class Cursor:
                 "Formatting sql statement is not implemented."
             )
 
-    def fetchone(self) -> Sequence:
+    def fetchone(self) -> Sequence | None:
         """
         Fetch the first output.
 
         Returns
         -------
-        out : Sequence
+        out : Sequence | None
             The first row.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Cursor#fetchone
         """
-        return self._df.first()
+        if self._df is None:
+            row = None
+        else:
+            row = self._df.first()
+        return row
 
 
 class Connection:
