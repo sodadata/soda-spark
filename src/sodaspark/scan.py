@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,9 @@ class Cursor:
     ------
     https://github.com/mkleehammer/pyodbc/wiki/Cursor
     """
+
+    def __init__(self) -> None:
+        self._df: DataFrame = DataFrame()
 
     def execute(self, sql: str, *parameters: Any) -> None:
         """
@@ -48,6 +52,17 @@ class Cursor:
             raise NotImplementedError(
                 "Formatting sql statement is not implemented."
             )
+
+    def fetchone(self) -> Sequence:
+        """
+        Fetch the first output.
+
+        Returns
+        -------
+        out : Sequence
+            The first row.
+        """
+        return self._df.first()
 
 
 class Connection:
