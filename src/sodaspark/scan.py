@@ -182,30 +182,6 @@ class _SparkDialect(SparkDialect):
         """
         return Connection()
 
-    def sql_columns_metadata(
-        self, table_name: str
-    ) -> list[tuple[str, str, str]]:
-        """
-        Get the meta data for the table.
-
-        Parameters
-        ----------
-        table_name : str
-            The table name.
-
-        Returns
-        -------
-        out : List[Tuple[str]]
-            A list with:
-            1) The column name.
-            2) The data type.
-            3) Nullable or not
-        """
-        cursor = self.create_connection().cursor()
-        cursor.execute(f"DESCRIBE TABLE {self.database}.{table_name}")
-        rows = cursor.fetchall()
-        return [(str(row.col_name), str(row.data_type), "YES") for row in rows]
-
 
 def create_scan_yml(scan_definition: str | Path) -> ScanYml:
     """
