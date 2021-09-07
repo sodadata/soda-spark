@@ -114,8 +114,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ steps.get_version.outputs.VERSION }}
-        release_name: soda-spark v${{ steps.get_version.outputs.VERSION }}
+        tag_name: ${{ steps.get_version.outputs.VERSION }}
+        release_name: soda-spark ${{ steps.get_version.outputs.VERSION }}
         prerelease: ${{ steps.get_release_type.outputs.IS_PRERELEASE }}
         body: ${{ github.event.head_commit.message }}
 
