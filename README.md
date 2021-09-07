@@ -52,8 +52,25 @@ From your Python prompt, execute the following commands.
 >>>
 >>> scan_result.measurements  # doctest: +ELLIPSIS
 [Measurement(metric='schema', ...), Measurement(metric='row_count', ...), ...]
+>>> scan_result.test_results  # doctest: +ELLIPSIS
+[TestResult(test=Test(..., expression='row_count > 0', ...), passed=True, skipped=False, ...)]
 >>>
 ```
+
+Or, use a [scan YAML](https://docs.soda.io/soda-sql/scan-yaml.html) file
+
+``` python
+>>> scan_yml = "static/demodata.yml"
+>>> scan_result = scan.execute(scan_yml, df)
+>>>
+>>> scan_result.measurements  # doctest: +ELLIPSIS
+[Measurement(metric='schema', ...), Measurement(metric='row_count', ...), ...]
+>>>
+```
+
+See the
+[scan result object](https://github.com/sodadata/soda-sql/blob/main/core/sodasql/scan/scan_result.py)
+for all attributes and methods.
 
 ## Understand
 
