@@ -326,3 +326,19 @@ def test_excluded_columns_date_is_not_present(
         measurement.column_name == "date"
         for measurement in scan_result.measurements
     )
+
+
+def test_scan_execute_with_soda_server_client_scan_result_does_not_contain_any_errors(
+    scan_definition: str,
+    df: DataFrame,
+) -> None:
+    """
+    The scan results should not contain any erros, also not when there is
+    Soda server client.
+    """
+    soda_server_client = MockSodaServerClient()
+    scan_result = scan.execute(
+        scan_definition, df, soda_server_client=soda_server_client
+    )
+
+    assert not scan_result.has_errors()
