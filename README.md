@@ -52,6 +52,8 @@ From your Python prompt, execute the following commands.
 >>>
 >>> scan_result.measurements  # doctest: +ELLIPSIS
 [Measurement(metric='schema', ...), Measurement(metric='row_count', ...), ...]
+>>> scan_result.test_results  # doctest: +ELLIPSIS
+[TestResult(test=Test(..., expression='row_count > 0', ...), passed=True, skipped=False, ...)]
 >>>
 ```
 
