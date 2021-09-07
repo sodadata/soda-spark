@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, SparkSession
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
@@ -76,6 +76,8 @@ class Cursor:
             raise NotImplementedError(
                 "Formatting sql statement is not implemented."
             )
+        spark_session = SparkSession.builder.getOrCreate()
+        self._df = spark_session.sql(sql)
 
     def fetchall(self) -> list[Sequence] | None:
         """
