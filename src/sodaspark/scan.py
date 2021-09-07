@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import DataFrame, Row, SparkSession
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
@@ -79,28 +78,28 @@ class Cursor:
         spark_session = SparkSession.builder.getOrCreate()
         self._df = spark_session.sql(sql)
 
-    def fetchall(self) -> list[Sequence] | None:
+    def fetchall(self) -> list[Row]:
         """
         Fetch all data.
 
         Returns
         -------
-        out : list[Sequence] | None
+        out : list[Row]
             The rows.
         """
         if self._df is None:
-            rows = None
+            rows = list()
         else:
             rows = self._df.collect()
         return rows
 
-    def fetchone(self) -> Sequence | None:
+    def fetchone(self) -> Row | None:
         """
         Fetch the first output.
 
         Returns
         -------
-        out : Sequence | None
+        out : Row | None
             The first row.
 
         Source
@@ -170,14 +169,10 @@ class _SparkDialect(SparkDialect):
             2) The data type.
             3) Nullable or not
         """
-        spark_session = self.create_connection()
-        response = spark_session.sql(  # type: ignore
-            f"DESCRIBE TABLE {self.database}.{table_name}"
-        )
-        return [
-            (str(row.col_name), str(row.data_type), "YES")
-            for row in response.collect()
-        ]
+        cursor = self.create_connection().cursor()
+        cursor.execute(f"DESCRIBE TABLE {self.database}.{table_name}")
+        rows = cursor.fetchall()
+        return [(str(row.col_name), str(row.data_type), "YES") for row in rows]
 
 
 def create_scan_yml(scan_definition: str | Path) -> ScanYml:
