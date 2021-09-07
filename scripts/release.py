@@ -3,12 +3,14 @@ Create a release.
 
 Source: https://github.com/tox-dev/tox/blob/master/tasks/release.py
 """
+import datetime as dt
 from pathlib import Path
 
 from git import Commit, Head, Remote, Repo, TagReference
 from packaging.version import Version
 
 ROOT_SRC_DIR = Path(__file__).parents[1]
+CHANGE_LOG = ROOT_SRC_DIR / "CHANGELOG.md"
 
 
 def main(version_str: str) -> None:
@@ -21,7 +23,7 @@ def main(version_str: str) -> None:
         )
 
     upstream, release_branch = create_release_branch(repo, version)
-    release_commit = repo.index.commit(f"release {version}")
+    release_commit = create_release_commit(repo, version)
     tag = tag_release_commit(release_commit, repo, version)
     print("push release commit")
     repo.git.push(upstream.name, release_branch)
@@ -29,6 +31,22 @@ def main(version_str: str) -> None:
     repo.git.push(upstream.name, tag)
     print("All done! ✨ 🍰 ✨")
     print("WARNING: you have switched to the release branch")
+
+
+def create_release_commit(repo: Repo, version: Version) -> Commit:
+    with CHANGE_LOG.open("r") as change_log:
+        change_log_content = change_log.read()
+
+    new_change_log_content = (
+        f"## [{version}] - {dt.date.today()}\n\n" + change_log_content
+    )
+
+    with CHANGE_LOG.open("w") as change_log:
+        change_log.write(new_change_log_content)
+
+    changes = change_log_content.split("##", 1)[0]
+    release_commit = repo.index.commit(f"release {version}\n\n{changes}")
+    return release_commit
 
 
 def create_release_branch(repo: Repo, version: Version) -> tuple[Remote, Head]:
