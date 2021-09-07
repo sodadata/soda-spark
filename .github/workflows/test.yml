@@ -112,11 +112,7 @@ jobs:
         tag_name: v${{ steps.get_version.outputs.VERSION }}
         release_name: soda-spark v${{ steps.get_version.outputs.VERSION }}
         prerelease: ${{ steps.get_release_type.outputs.IS_PRERELEASE }}
-        body: |
-          Soda spark release v${{ steps.get_version.outputs.VERSION }}
-          ``` sh
-          $ pip install soda-spark==${{ steps.get_version.outputs.VERSION }}
-          ```
+        body: ${{ github.event.head_commit.message }}
 
   pypi-release:
     runs-on: ubuntu-latest
