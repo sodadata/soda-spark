@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from pyspark.sql import DataFrame
 from sodasql.common.yaml_helper import YamlHelper
@@ -22,6 +23,31 @@ class Cursor:
     ------
     https://github.com/mkleehammer/pyodbc/wiki/Cursor
     """
+
+    def execute(self, sql: str, *parameters: Any) -> None:
+        """
+        Execute a sql statement.
+
+        Parameters
+        ----------
+        sql : str
+            Execute a sql statement.
+        *parameters : Any
+            The parameters.
+
+        Raises
+        ------
+        NotImplementedError
+            If there are parameters given. We do not format sql statements.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Cursor#executesql-parameters
+        """
+        if len(parameters) > 0:
+            raise NotImplementedError(
+                "Formatting sql statement is not implemented."
+            )
 
 
 class Connection:
