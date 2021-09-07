@@ -68,6 +68,10 @@ Or, use a [scan YAML](https://docs.soda.io/soda-sql/scan-yaml.html) file
 >>>
 ```
 
+See the
+[scan result object](https://github.com/sodadata/soda-sql/blob/main/core/sodasql/scan/scan_result.py)
+for all attributes and methods.
+
 ## Understand
 
 Under the hood `soda-spark` does the following.
