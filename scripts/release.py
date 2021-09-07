@@ -45,7 +45,7 @@ def create_release_commit(repo: Repo, version: Version) -> Commit:
         change_log.write(new_change_log_content)
 
     changes = change_log_content.split("##", 1)[0]
-    release_commit = repo.index.commit(f"release {version}\n\n{changes}")
+    release_commit = repo.index.commit(f"Release {version}\n\n{changes}")
     return release_commit
 
 
