@@ -28,6 +28,21 @@ class Cursor:
     def __init__(self) -> None:
         self._df: DataFrame | None = None
 
+    @property
+    def description(self) -> tuple:
+        """
+        The description.
+
+        Returns
+        -------
+        out : tuple
+            The description
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Cursor#description
+        """
+
     def execute(self, sql: str, *parameters: Any) -> None:
         """
         Execute a sql statement.
