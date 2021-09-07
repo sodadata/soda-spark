@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pyspark.sql import DataFrame, Row, SparkSession
+from pyspark.sql import DataFrame, SparkSession
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
@@ -12,25 +12,6 @@ from sodasql.scan.scan_yml import ScanYml
 from sodasql.scan.scan_yml_parser import ScanYmlParser
 from sodasql.scan.warehouse import Warehouse
 from sodasql.scan.warehouse_yml import WarehouseYml
-
-
-class _Warehouse(Warehouse):
-    def sql_fetchone(self, sql: str) -> Row:
-        """
-        Fetch first row of sql output.
-
-        Parameters
-        ----------
-        sql : str
-            The sql to execute.
-
-        Returns
-        -------
-        out : Row
-            The first row.
-        """
-        out = self.connection.sql(sql)
-        return out.first()
 
 
 class _SparkDialect(SparkDialect):
@@ -123,7 +104,7 @@ def create_warehouse_yml() -> WarehouseYml:
 def create_warehouse() -> Warehouse:
     """Create a ware house."""
     warehouse_yml = create_warehouse_yml()
-    warehouse = _Warehouse(warehouse_yml)
+    warehouse = Warehouse(warehouse_yml)
     return warehouse
 
 
