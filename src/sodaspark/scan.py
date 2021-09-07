@@ -77,6 +77,21 @@ class Cursor:
                 "Formatting sql statement is not implemented."
             )
 
+    def fetchall(self) -> list[Sequence] | None:
+        """
+        Fetch all data.
+
+        Returns
+        -------
+        out : list[Sequence] | None
+            The rows.
+        """
+        if self._df is None:
+            rows = None
+        else:
+            rows = self._df.collect()
+        return rows
+
     def fetchone(self) -> Sequence | None:
         """
         Fetch the first output.
