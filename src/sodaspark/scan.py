@@ -56,6 +56,7 @@ class Cursor:
         ------
         https://github.com/mkleehammer/pyodbc/wiki/Cursor#close
         """
+        self._df = None
 
     def execute(self, sql: str, *parameters: Any) -> None:
         """
