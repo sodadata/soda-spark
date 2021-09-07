@@ -55,6 +55,17 @@ From your Python prompt, execute the following commands.
 >>>
 ```
 
+Or, use a [scan YAML](https://docs.soda.io/soda-sql/scan-yaml.html) file
+
+``` python
+>>> scan_yml = "static/demodata.yml"
+>>> scan_result = scan.execute(scan_yml, df)
+>>>
+>>> scan_result.measurements  # doctest: +ELLIPSIS
+[Measurement(metric='schema', ...), Measurement(metric='row_count', ...), ...]
+>>>
+```
+
 ## Understand
 
 Under the hood `soda-spark` does the following.
