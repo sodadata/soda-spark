@@ -72,6 +72,23 @@ See the
 [scan result object](https://github.com/sodadata/soda-sql/blob/main/core/sodasql/scan/scan_result.py)
 for all attributes and methods.
 
+### Send results to Soda cloud
+
+Send the tests result to Soda cloud.
+
+``` python
+>>> import os
+>>> from sodasql.soda_server_client.soda_server_client import SodaServerClient
+>>>
+>>> soda_server_client = SodaServerClient(
+...     host="cloud.soda.io",
+...     api_key_id=os.getenv("API_PUBLIC"),
+...     api_key_secret=os.getenv("API_PRIVATE"),
+... )
+>>> scan_result = scan.execute(scan_yml, df, soda_server_client=soda_server_client)
+>>>
+```
+
 ## Understand
 
 Under the hood `soda-spark` does the following.
