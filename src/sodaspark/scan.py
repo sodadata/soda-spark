@@ -166,6 +166,10 @@ class Connection:
         -------
         out : Cursor
             The cursor.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Connection#cursor
         """
         return Cursor()
 
