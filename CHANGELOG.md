@@ -1,3 +1,5 @@
+## [0.2.0] - 2021-09-09
+
 - Add option to connect with Soda cloud
 
 ## [0.1.1] - 2021-09-07
