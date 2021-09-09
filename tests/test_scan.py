@@ -68,13 +68,14 @@ class MockSodaServerClient(SodaServerClient):
         self.token: str = "mocktoken"
         self.file_uploads: dict = {}
 
-    def execute_command(self, command: dict) -> dict | list[dict]:
+    def execute_command(self, command: dict) -> dict | list[dict] | None:
         # Serializing is important as it ensures no exceptions occur during serialization
         json.dumps(command, indent=2)
         # Still we use the unserialized version to check the results as that is easier
 
+        out: dict | list[dict] | None = None
         if command["type"] == "sodaSqlScanStart":
-            out: dict | list[dict] = {"scanReference": "scanref-123"}
+            out = {"scanReference": "scanref-123"}
         elif command["type"] == "sodaSqlCustomMetrics":
             out = [
                 {
