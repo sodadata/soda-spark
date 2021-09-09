@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import TracebackType
+from typing import Any
 
 from pyspark.sql import DataFrame, Row, SparkSession
 from sodasql.common.yaml_helper import YamlHelper
@@ -14,23 +16,162 @@ from sodasql.scan.warehouse import Warehouse
 from sodasql.scan.warehouse_yml import WarehouseYml
 
 
-class _Warehouse(Warehouse):
-    def sql_fetchone(self, sql: str) -> Row:
+class Cursor:
+    """
+    Mock a pyodbc cursor.
+
+    Source
+    ------
+    https://github.com/mkleehammer/pyodbc/wiki/Cursor
+    """
+
+    def __init__(self) -> None:
+        self._df: DataFrame | None = None
+
+    def __enter__(self) -> Cursor:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: Exception | None,
+        exc_tb: TracebackType | None,
+    ) -> bool:
+        self.close()
+        return True
+
+    @property
+    def description(
+        self,
+    ) -> list[tuple[str, str, None, None, None, None, bool]]:
         """
-        Fetch first row of sql output.
+        The description.
+
+        Returns
+        -------
+        out : list[tuple[str, str, None, None, None, None, bool]]
+            The description.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Cursor#description
+        """
+        if self._df is None:
+            description = list()
+        else:
+            description = [
+                (
+                    field.name,
+                    field.dataType.simpleString(),
+                    None,
+                    None,
+                    None,
+                    None,
+                    field.nullable,
+                )
+                for field in self._df.schema.fields
+            ]
+        return description
+
+    def close(self) -> None:
+        """
+        Close the connection.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Cursor#close
+        """
+        self._df = None
+
+    def execute(self, sql: str, *parameters: Any) -> None:
+        """
+        Execute a sql statement.
 
         Parameters
         ----------
         sql : str
-            The sql to execute.
+            Execute a sql statement.
+        *parameters : Any
+            The parameters.
+
+        Raises
+        ------
+        NotImplementedError
+            If there are parameters given. We do not format sql statements.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Cursor#executesql-parameters
+        """
+        if len(parameters) > 0:
+            raise NotImplementedError(
+                "Formatting sql statement is not implemented."
+            )
+        spark_session = SparkSession.builder.getOrCreate()
+        self._df = spark_session.sql(sql)
+
+    def fetchall(self) -> list[Row]:
+        """
+        Fetch all data.
 
         Returns
         -------
-        out : Row
-            The first row.
+        out : list[Row]
+            The rows.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Cursor#fetchall
         """
-        out = self.connection.sql(sql)
-        return out.first()
+        if self._df is None:
+            rows = list()
+        else:
+            rows = self._df.collect()
+        return rows
+
+    def fetchone(self) -> Row | None:
+        """
+        Fetch the first output.
+
+        Returns
+        -------
+        out : Row | None
+            The first row.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Cursor#fetchone
+        """
+        if self._df is None:
+            row = None
+        else:
+            row = self._df.first()
+        return row
+
+
+class Connection:
+    """
+    Mock a pyodbc connection.
+
+    Source
+    ------
+    https://github.com/mkleehammer/pyodbc/wiki/Connection
+    """
+
+    def cursor(self) -> Cursor:
+        """
+        Get a cursor.
+
+        Returns
+        -------
+        out : Cursor
+            The cursor.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Connection#cursor
+        """
+        return Cursor()
 
 
 class _SparkDialect(SparkDialect):
@@ -38,45 +179,16 @@ class _SparkDialect(SparkDialect):
         super().__init__(None)
         self.database = "global_temp"
 
-    def create_connection(self) -> SparkSession:
+    def create_connection(self) -> Connection:
         """
-        Create a connection to the spark session.
+        Create a connection.
 
         Returns
         -------
-        out : SparkSession
-            The active spark session.
+        out : Connection
+            A connection.
         """
-        spark_session = SparkSession.builder.getOrCreate()
-        return spark_session
-
-    def sql_columns_metadata(
-        self, table_name: str
-    ) -> list[tuple[str, str, str]]:
-        """
-        Get the meta data for the table.
-
-        Parameters
-        ----------
-        table_name : str
-            The table name.
-
-        Returns
-        -------
-        out : List[Tuple[str]]
-            A list with:
-            1) The column name.
-            2) The data type.
-            3) Nullable or not
-        """
-        spark_session = self.create_connection()
-        response = spark_session.sql(
-            f"DESCRIBE TABLE {self.database}.{table_name}"
-        )
-        return [
-            (str(row.col_name), str(row.data_type), "YES")
-            for row in response.collect()
-        ]
+        return Connection()
 
 
 def create_scan_yml(scan_definition: str | Path) -> ScanYml:
@@ -123,7 +235,7 @@ def create_warehouse_yml() -> WarehouseYml:
 def create_warehouse() -> Warehouse:
     """Create a ware house."""
     warehouse_yml = create_warehouse_yml()
-    warehouse = _Warehouse(warehouse_yml)
+    warehouse = Warehouse(warehouse_yml)
     return warehouse
 
 
