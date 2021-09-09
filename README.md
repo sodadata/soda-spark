@@ -74,7 +74,7 @@ for all attributes and methods.
 
 ### Send results to Soda cloud
 
-Send the tests result to Soda cloud.
+Send the scan result to Soda cloud.
 
 ``` python
 >>> import os
