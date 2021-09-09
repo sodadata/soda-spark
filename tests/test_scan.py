@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 from dataclasses import dataclass
-from typing import Any
+from typing import BinaryIO
 
 import pytest
 from pyspark.sql import DataFrame, SparkSession
@@ -68,16 +68,15 @@ class MockSodaServerClient(SodaServerClient):
         self.token: str = "mocktoken"
         self.file_uploads: dict = {}
 
-    def execute_command(self, command: dict) -> Any:
+    def execute_command(self, command: dict) -> dict | list[dict]:
         # Serializing is important as it ensures no exceptions occur during serialization
         json.dumps(command, indent=2)
         # Still we use the unserialized version to check the results as that is easier
 
         if command["type"] == "sodaSqlScanStart":
-            return {"scanReference": "scanref-123"}
-
-        if command["type"] == "sodaSqlCustomMetrics":
-            return [
+            out: dict | list[dict] = {"scanReference": "scanref-123"}
+        elif command["type"] == "sodaSqlCustomMetrics":
+            out = [
                 {
                     "id": "f255b6af-f2ad-485c-8222-416ccbe4b6e2",
                     "type": "missingValuesCount",
@@ -91,8 +90,9 @@ class MockSodaServerClient(SodaServerClient):
                     "custom": True,
                 }
             ]
+        return out
 
-    def execute_query(self, command: dict) -> Any:
+    def execute_query(self, command: dict) -> list[dict]:
         if command["type"] == "sodaSqlCustomMetrics":
             return [
                 {
@@ -111,7 +111,7 @@ class MockSodaServerClient(SodaServerClient):
 
         raise RuntimeError(f"{command['type']} is not supported yet")
 
-    def _upload_file(self, headers: str, temp_file: Any) -> Any:
+    def _upload_file(self, headers: str, temp_file: BinaryIO) -> dict:
         file_id = f"file-{str(len(self.file_uploads))}"
         data = temp_file.read().decode("utf-8")
         self.file_uploads[file_id] = {"headers": headers, "data": data}
