@@ -118,6 +118,10 @@ class Cursor:
         -------
         out : list[Row]
             The rows.
+
+        Source
+        ------
+        https://github.com/mkleehammer/pyodbc/wiki/Cursor#fetchall
         """
         if self._df is None:
             rows = list()
