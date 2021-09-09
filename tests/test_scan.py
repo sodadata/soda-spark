@@ -1,6 +1,5 @@
 import datetime as dt
 from dataclasses import dataclass
-from typing import Any
 
 import pytest
 from pyspark.sql import DataFrame, SparkSession
@@ -127,49 +126,6 @@ def test_create_scan_has_spark_dialect(
     assert isinstance(scanner.dialect, SparkDialect)
 
 
-def is_equal_or_both_none(left: Any, right: Any) -> bool:
-    """
-    Check if left and right are equal or both None.
-
-    Parameters
-    ----------
-    left: Any :
-        Right element.
-    right: Any
-        Left element.
-
-    Returns
-    -------
-    out : bool
-        True, if the left and right are equal or both None. False, otherwise.
-    """
-    return (left == right) or (left is None and right is None)
-
-
-def is_same_measurement(left: Measurement, right: Measurement) -> bool:
-    """
-    Check if the measurements are the same.
-
-    Parameters
-    ----------
-    left : Measurement
-        The left measurement.
-    right : Measurement
-        The right measurement.
-
-    Returns
-    -------
-    out : bool
-        True if the measurements are the same, false otherwise.
-    """
-    return (
-        left.metric == right.metric
-        and is_equal_or_both_none(left.column_name, right.column_name)
-        and is_equal_or_both_none(left.value, right.value)
-        and is_equal_or_both_none(left.group_values, right.group_values)
-    )
-
-
 @pytest.mark.parametrize(
     "measurement",
     [
@@ -189,7 +145,7 @@ def test_scan_execute_contains_expected_metric(
     scan_result = scan.execute(scan_definition, df)
 
     assert any(
-        is_same_measurement(measurement, output_measurement)
+        measurement == output_measurement
         for output_measurement in scan_result.measurements
     )
 
@@ -210,55 +166,8 @@ def test_scan_execute_with_metric_groups_measurement_as_expected(
     scan_result = scan.execute(scan_definition, df)
 
     assert any(
-        is_same_measurement(measurement, output_measurement)
+        measurement == output_measurement
         for output_measurement in scan_result.measurements
-    )
-
-
-def is_same_test(left: Test, right: Test) -> bool:
-    """
-    Check if the test are the same.
-
-    Parameters
-    ----------
-    left : Test
-        The left test.
-    right : TestResult
-        The right test.
-
-    Returns
-    -------
-    out : bool
-        True if the tests are the same, false otherwise.
-    """
-    return is_equal_or_both_none(
-        left.expression, right.expression
-    ) and is_equal_or_both_none(left.column, right.column)
-
-
-def is_same_test_result(left: TestResult, right: TestResult) -> bool:
-    """
-    Check if the test results are the same.
-
-    Parameters
-    ----------
-    left : TestResult
-        The left test result.
-    right : TestResult
-        The right test result.
-
-    Returns
-    -------
-    out : bool
-        True if the tests results are the same, false otherwise.
-    """
-    return (
-        is_same_test(left.test, right.test)
-        and is_equal_or_both_none(left.passed, right.passed)
-        and is_equal_or_both_none(left.skipped, right.skipped)
-        and is_equal_or_both_none(left.values, right.values)
-        and is_equal_or_both_none(left.error, right.error)
-        and is_equal_or_both_none(left.group_values, right.group_values)
     )
 
 
@@ -267,24 +176,25 @@ def is_same_test_result(left: TestResult, right: TestResult) -> bool:
     [
         TestResult(
             test=Test(
-                id=None,
-                title=None,
+                id='{"expression":"row_count > 0"}',
+                title="test(row_count > 0)",
                 expression="row_count > 0",
+                metrics=["row_count"],
                 column=None,
-                metrics=[],
             ),
             passed=True,
             skipped=False,
             values={"row_count": 6},
             error=None,
+            group_values=None,
         ),
         TestResult(
             test=Test(
-                id=None,
-                title=None,
+                id='{"column":"id","expression":"invalid_percentage == 0"}',
+                title="column(id) test(invalid_percentage == 0)",
                 expression="invalid_percentage == 0",
+                metrics=["invalid_percentage"],
                 column="id",
-                metrics=[],
             ),
             passed=True,
             skipped=False,
@@ -293,16 +203,17 @@ def is_same_test_result(left: TestResult, right: TestResult) -> bool:
         ),
         TestResult(
             test=Test(
-                id=None,
-                title=None,
+                id='{"column":"feepct","expression":"invalid_percentage == 0"}',
+                title="column(feepct) test(invalid_percentage == 0)",
                 expression="invalid_percentage == 0",
-                metrics=[],
+                metrics=["invalid_percentage"],
                 column="feepct",
             ),
             passed=True,
             skipped=False,
             values={"invalid_percentage": 0.0},
             error=None,
+            group_values=None,
         ),
     ],
 )
@@ -316,7 +227,7 @@ def test_scan_execute_contains_expected_test_result(
     scan_result = scan.execute(scan_definition, df)
 
     assert any(
-        is_same_test_result(test_result, output_test_result)
+        test_result == output_test_result
         for output_test_result in scan_result.test_results
     )
 
