@@ -64,8 +64,6 @@ class MockSodaServerClient(SodaServerClient):
 
     # noinspection PyMissingConstructor
     def __init__(self) -> None:
-        self.requests: Any = []
-        self.commands: Any = []
         self.host: str = "MockSodaServerClient"
         self.token: str = "mocktoken"
         self.file_uploads: dict = {}
@@ -74,7 +72,6 @@ class MockSodaServerClient(SodaServerClient):
         # Serializing is important as it ensures no exceptions occur during serialization
         json.dumps(command, indent=2)
         # Still we use the unserialized version to check the results as that is easier
-        self.commands.append(command)
 
         if command["type"] == "sodaSqlScanStart":
             return {"scanReference": "scanref-123"}
