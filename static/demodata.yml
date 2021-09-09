@@ -25,7 +25,3 @@ columns:
     valid_format: uuid
     tests:
     - invalid_percentage == 0
-  feepct:
-    valid_format: number_percentage
-    tests:
-    - invalid_percentage == 0
