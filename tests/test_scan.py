@@ -52,6 +52,13 @@ columns:
     - invalid_percentage == 0
 excluded_columns:
 - date
+sql_metrics:
+- sql: |
+    SELECT sum(size) as total_size_us
+    FROM demodata
+    WHERE country = 'US'
+  tests:
+  - total_size_us > 5000
 """
 
 
@@ -282,6 +289,20 @@ def test_scan_execute_with_metric_groups_measurement_as_expected(
             passed=True,
             skipped=False,
             values={"expression_result": 0.0, "invalid_percentage": 0.0},
+            error=None,
+            group_values=None,
+        ),
+        TestResult(
+            test=Test(
+                id='{"sql_metric_index":0,"expression":"total_size_us > 5000"}',
+                title="sqlmetric(0) test(total_size_us > 5000)",
+                expression="total_size_us > 5000",
+                metrics=["total_size_us"],
+                column=None,
+            ),
+            passed=True,
+            skipped=False,
+            values={"expression_result": 11553, "total_size_us": 11553},
             error=None,
             group_values=None,
         ),
