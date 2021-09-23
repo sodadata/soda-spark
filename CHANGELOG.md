@@ -1,3 +1,5 @@
+- Test and document sql metrics
+
 ## [0.2.0] - 2021-09-09
 
 - Add option to connect with Soda cloud
