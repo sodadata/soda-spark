@@ -175,7 +175,7 @@ class Connection:
 class _SparkDialect(SparkDialect):
     def __init__(self) -> None:
         super().__init__(None)
-        self.database = "global_temp"
+        self.database = None
 
     def create_connection(self) -> Connection:
         """
@@ -289,7 +289,7 @@ def execute(
         The scan results.
     """
     scan_yml = create_scan_yml(scan_definition)
-    df.createOrReplaceGlobalTempView(scan_yml.table_name)
+    df.createOrReplaceTempView(scan_yml.table_name)
     scan = create_scan(scan_yml, soda_server_client=soda_server_client)
     scan.execute()
     return scan.scan_result
