@@ -1,3 +1,5 @@
+## [0.2.1] - 2021-09-23
+
 - Test and document sql metrics
 
 ## [0.2.0] - 2021-09-09
