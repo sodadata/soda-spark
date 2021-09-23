@@ -47,6 +47,13 @@ From your Python prompt, execute the following commands.
 ...     valid_format: uuid
 ...     tests:
 ...     - invalid_percentage == 0
+... sql_metrics:
+... - sql: |
+...     SELECT sum(size) as total_size_us
+...     FROM demodata
+...     WHERE country = 'US'
+...   tests:
+...   - total_size_us > 5000
 ... """)
 >>> scan_result = scan.execute(scan_definition, df)
 >>>
