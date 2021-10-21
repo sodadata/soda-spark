@@ -12,7 +12,7 @@ Run the release command and make sure you pass in the desired release number:
 
 ``` bash
 $ python -m pip install gitpython
-$ python scripts/release.py
+$ python scripts/release.py --version <my version number>
 ```
 
 Create a pull request and wait until it the CI passes. Now make sure you merge
