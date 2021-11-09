@@ -1,9 +1,20 @@
-# Soda Spark
+<p align="center"><h1>Soda Spark</h1><br/><b>Data testing, monitoring, and profiling for Spark Dataframes.</b></p>
+
+<p align="center">
+  <a href="https://github.com/sodadata/soda-spark/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue.svg" alt="License: Apache 2.0"></a>
+  <a href="https://join.slack.com/t/soda-community/shared_invite/zt-m77gajo1-nXJF7JtbbRht2zwaiLb9pg"><img alt="Slack" src="https://img.shields.io/badge/chat-slack-green.svg"></a>
+  <a href="https://pypi.org/project/soda-spark/"><img alt="Pypi Soda PARK" src="https://img.shields.io/badge/pypi-soda%20spark-green.svg"></a>
+  <a href="https://github.com/sodadata/soda-spark/actions/workflows/build.yml"><img alt="Build soda-spark" src="https://github.com/sodadata/soda-spark/actions/workflows/workflow.yml/badge.svg"></a>
+</p>
+
 
 Soda Spark is an extension of
 [Soda SQL](https://docs.soda.io/soda-sql/5_min_tutorial.html) that allows you to run Soda
 SQL functionality programmatically on a
 [Spark data frame](https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.sql.DataFrame.html).
+
+Soda SQL is an open-source command-line tool. It utilizes user-defined input to prepare SQL queries that run tests on tables in a data warehouse to find invalid, missing, or unexpected data. When tests fail, they surface "bad" data that you can fix to ensure that downstream analysts are using "good" data to make decisions.
+
 
 ## Requirements
 
@@ -12,7 +23,7 @@ Soda Spark has the same requirements as
 
 ## Install
 
-From your command-line interface tool, execute the following command.
+From your shell, execute the following command.
 
 ``` sh
 $ pip install soda-spark
