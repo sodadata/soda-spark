@@ -18,6 +18,9 @@ from sodaspark import scan
 
 SCAN_DEFINITION = """
 table_name: demodata
+samples:
+  table_limit: 50
+  failed_limit: 50
 metrics:
 - row_count
 - missing_count
