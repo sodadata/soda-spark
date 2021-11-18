@@ -29,6 +29,7 @@ class Cursor:
 
     def __init__(self) -> None:
         self._df: DataFrame | None = None
+        self._rows: list[Row] | None = None
 
     def __enter__(self) -> Cursor:
         return self
@@ -84,6 +85,7 @@ class Cursor:
         https://github.com/mkleehammer/pyodbc/wiki/Cursor#close
         """
         self._df = None
+        self._rows = None
 
     def execute(self, sql: str, *parameters: Any) -> None:
         """
@@ -112,24 +114,22 @@ class Cursor:
         spark_session = SparkSession.builder.getOrCreate()
         self._df = spark_session.sql(sql)
 
-    def fetchall(self) -> list[Row]:
+    def fetchall(self) -> list[Row] | None:
         """
         Fetch all data.
 
         Returns
         -------
-        out : list[Row]
+        out : list[Row] | None
             The rows.
 
         Source
         ------
         https://github.com/mkleehammer/pyodbc/wiki/Cursor#fetchall
         """
-        if self._df is None:
-            rows = list()
-        else:
-            rows = self._df.collect()
-        return rows
+        if self._rows is None and self._df is not None:
+            self._rows = self._df.collect()
+        return self._rows
 
     def fetchone(self) -> Row | None:
         """
@@ -144,10 +144,17 @@ class Cursor:
         ------
         https://github.com/mkleehammer/pyodbc/wiki/Cursor#fetchone
         """
-        if self._df is None:
-            row = None
+        if self._rows is None and self._df is not None:
+            self._rows = self._df.collect()
+
+        if self._rows is not None:
+            try:
+                row = self._rows.pop(0)
+            except IndexError:
+                row = None
         else:
-            row = self._df.first()
+            row = None
+
         return row
 
 
