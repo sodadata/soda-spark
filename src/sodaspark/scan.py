@@ -147,11 +147,8 @@ class Cursor:
         if self._rows is None and self._df is not None:
             self._rows = self._df.collect()
 
-        if self._rows is not None:
-            try:
-                row = self._rows.pop(0)
-            except IndexError:
-                row = None
+        if self._rows is not None and len(self._rows) > 0:
+            row = self._rows.pop(0)
         else:
             row = None
 
