@@ -49,7 +49,7 @@ columns:
     valid_format: uuid
     tests:
     - invalid_percentage == 0
-  feepct:
+  fee pct:
     valid_format: number_percentage
     tests:
     - invalid_percentage == 0
@@ -166,7 +166,7 @@ def df(spark_session: SparkSession) -> DataFrame:
             T.StructField("name", T.StringType(), True),
             T.StructField("size", T.IntegerType(), True),
             T.StructField("date", T.DateType(), True),
-            T.StructField("feepct", T.StringType(), True),
+            T.StructField("fee pct", T.StringType(), True),
             T.StructField("country", T.StringType(), True),
         ]
     )
@@ -283,11 +283,11 @@ def test_scan_execute_with_metric_groups_measurement_as_expected(
         ),
         TestResult(
             test=Test(
-                id='{"column":"feepct","expression":"invalid_percentage == 0"}',
-                title="column(feepct) test(invalid_percentage == 0)",
+                id='{"column":"fee pct","expression":"invalid_percentage == 0"}',
+                title="column(fee pct) test(invalid_percentage == 0)",
                 expression="invalid_percentage == 0",
                 metrics=["invalid_percentage"],
-                column="feepct",
+                column="fee pct",
             ),
             passed=True,
             skipped=False,
