@@ -206,6 +206,16 @@ def test_create_scan_has_spark_dialect(
     assert isinstance(scanner.dialect, SparkDialect)
 
 
+def test_scan_execute_scan_result_does_not_contain_any_errors(
+    scan_definition: str,
+    df: DataFrame,
+) -> None:
+    """The scan results should not contain any erros."""
+
+    scan_result = scan.execute(scan_definition, df)
+    assert not scan_result.has_errors()
+
+
 @pytest.mark.parametrize(
     "measurement",
     [
@@ -324,17 +334,6 @@ def test_scan_execute_contains_expected_test_result(
         test_result == output_test_result
         for output_test_result in scan_result.test_results
     )
-
-
-def test_scan_execute_scan_result_does_not_contain_any_errors(
-    scan_definition: str,
-    df: DataFrame,
-) -> None:
-    """The scan results should not contain any erros."""
-
-    scan_result = scan.execute(scan_definition, df)
-
-    assert not scan_result.has_errors()
 
 
 def test_excluded_columns_date_is_not_present(
