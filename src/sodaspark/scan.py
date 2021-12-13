@@ -6,11 +6,15 @@ from types import TracebackType
 from typing import Any
 
 from pyspark.sql import DataFrame, Row, SparkSession
+from pyspark.sql import types as T
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
 from sodasql.scan.scan import Scan
+from sodasql.scan.scan_error import ScanError
+from sodasql.scan.test_result import TestResult
 from sodasql.scan.scan_result import ScanResult
+from sodasql.scan.measurement import Measurement
 from sodasql.scan.scan_yml import ScanYml
 from sodasql.scan.scan_yml_parser import ScanYmlParser
 from sodasql.scan.warehouse import Warehouse
@@ -297,3 +301,122 @@ def execute(
     scan = create_scan(scan_yml, soda_server_client=soda_server_client)
     scan.execute()
     return scan.scan_result
+
+def measurements_to_data_frame(measurements: list[Measurement]) -> DataFrame:
+    """
+    Convert measurements to a data frame.
+    Parameters
+    ----------
+    measurements: List[Measurement]
+        The measurements.
+    Returns
+    -------
+    out : DataFrame
+        The measurements as data frame.
+    """
+    schema_group_values = T.StructType(
+        [
+            T.StructField("group", T.StringType(), True),
+            T.StructField("value", T.StringType(), True),
+        ]
+    )
+    schema = T.StructType(
+        [
+            T.StructField("metric", T.StringType(), True),
+            T.StructField("columnName", T.StringType(), True),
+            T.StructField("value", T.StringType(), True),
+            T.StructField("groupValues", schema_group_values, True),
+        ]
+    )
+    spark_session = SparkSession.builder.getOrCreate()
+    out = spark_session.createDataFrame(
+        [measurement.to_dict() for measurement in measurements],
+        schema=schema,
+    )
+    return out
+
+
+def testresults_to_data_frame(testresults: list[TestResult]) -> DataFrame:
+    """
+    Convert TestResults to a data frame.
+    Parameters
+    ----------
+    testresults: List[TestResult]
+        The testresults.
+    Returns
+    -------
+    out : DataFrame
+        The testresults as data frame.
+    """
+    schema_group_values = T.StructType(
+        [
+            T.StructField("expression_result", T.LongType(), True),
+            T.StructField("row_count", T.LongType(), True),
+        ]
+    )
+    schema = T.StructType(
+        [
+            T.StructField("columnName", T.StringType(), True),
+            T.StructField("description", T.StringType(), True),
+            T.StructField("expression", T.StringType(), True),
+            T.StructField("id", T.StringType(), True),
+            T.StructField("passed", T.BooleanType(), True),
+            T.StructField("skipped", T.BooleanType(), True),
+            T.StructField("title", T.StringType(), True),
+            T.StructField("values", schema_group_values, True),
+        ]
+    )
+    spark_session = SparkSession.builder.getOrCreate()
+    out = spark_session.createDataFrame(
+        [testresult.to_dict() for testresult in testresults], schema=schema
+    )
+    return out
+
+
+def scanerror_to_data_frame(scanerrors: list[ScanError]) -> DataFrame:
+    """
+    Convert ScanError to a data frame.
+    Parameters
+    ----------
+    scanerror: List[ScanError]
+        The scanerrors.
+    Returns
+    -------
+    out : DataFrame
+        The scanerrors as data frame.
+    """
+    schema = T.StructType(
+        [
+            T.StructField("type", T.StringType(), True),
+            T.StructField("message", T.StringType(), True),
+        ]
+    )
+    spark_session = SparkSession.builder.getOrCreate()
+    out = spark_session.createDataFrame(
+        [scanerror.to_dict() for scanerror in scanerrors], schema=schema
+    )
+    return out
+
+
+def convert_scan_result_to_spark_data_frames(
+    scan_result: ScanResult,
+) -> tuple[DataFrame, DataFrame, DataFrame]:
+    """
+    Convert the scan results to three Spark data frames.
+    Parameters
+    ------------
+    scan_result : ScanResult
+        The scan result.
+    Returns
+    --------
+    tuple[DataFrame, DataFrame, DataFrame] :
+        A Spark data frame with the:
+        1. measurements;
+        2. test results;
+        3. scan errors;
+    """
+    return (
+        measurements_to_data_frame(scan_result.measurements),
+        testresults_to_data_frame(scan_result.test_results),
+        scanerror_to_data_frame(scan_result.errors),
+    )
