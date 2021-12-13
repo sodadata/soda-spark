@@ -23,6 +23,7 @@ For a pip environment do:
 ``` bash
 python -m venv venv/
 source ./venv/bin/activate
+pip install -e .[dev]
 ```
 
 # Testing
