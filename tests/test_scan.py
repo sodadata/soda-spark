@@ -365,3 +365,76 @@ def test_scan_execute_with_soda_server_client_scan_result_does_not_contain_any_e
     )
 
     assert not scan_result.has_errors()
+
+
+def test_scan_measurement_dataclass_fields(
+    scan_definition: str, df: DataFrame
+) -> None:
+    """Valid if the expected fields are present in measurement dataclass is present."""
+    key_list = []
+    scan_result = scan.execute(scan_definition, df)
+    for key in scan_result.measurements[0].__dataclass_fields__:
+        key_list.append(key)
+    assert key_list == ["metric", "column_name", "value", "group_values"]
+
+
+# Identify what should we test for here. The idea is to verify if we have the same set of fields.
+def test_scan_testresult_dataclass_fields(
+    scan_definition: str, df: DataFrame
+) -> None:
+    """Valid if the expected fields are present in testresult dataclass is present."""
+    key_list = []
+    scan_result = scan.execute(scan_definition, df)
+    testresult_df = scan.testresults_to_data_frame(scan_result.test_results)
+    testresult_df.show(20)
+    for key in scan.test_result_to_dict(scan_result.test_results[0]):
+        key_list.append(key)
+    print(key_list)
+    assert (
+        key_list.sort()
+        == [
+            "columnName",
+            "description",
+            "expression",
+            "id",
+            "passed",
+            "skipped",
+            "title",
+            "values",
+            "metrics",
+            "error",
+            "group_values",
+        ].sort()
+    )
+
+
+# # Modify assert statement. Currently testing the conversion of Measurements to Dataframe.
+# def test_scan_measurement_to_dataframe(
+#     scan_definition: str, df: DataFrame
+# ) -> None:
+#     """Valid if the expected measurement is present."""
+#     scan_result = scan.execute(scan_definition, df)
+#     measurement_df = scan.measurements_to_data_frame(scan_result.measurements)
+
+
+# def test_scan_testresult_to_dataframe(
+#     scan_definition: str,
+#     df: DataFrame
+# ) -> None:
+#     """Valid if the expected measurement is present."""
+
+#     scan_result = scan.execute(scan_definition, df)
+#     testresult_df = scan.testresults_to_data_frame(scan_result.test_results)
+#     testresult_df.show(20)
+#     assert False
+
+# def test_scan_scanerror_to_dataframe(
+#     scan_definition: str,
+#     df: DataFrame
+# ) -> None:
+#     """Valid if the expected measurement is present."""
+
+#     scan_result = scan.execute(scan_definition, df)
+#     scanerror_df = scan.scanerror_to_data_frame(scan_result.errors)
+#     scanerror_df.show(20)
+#     assert False
