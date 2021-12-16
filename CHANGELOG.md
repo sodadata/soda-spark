@@ -1,3 +1,6 @@
+- Use version range for `soda-spark-sql` dependency
+- Add `host` and `port` attributes to `_SparkDialect`
+
 ## [0.2.3] - 2021-11-18
 
 - Fix samples not working
