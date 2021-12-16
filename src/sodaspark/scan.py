@@ -181,6 +181,10 @@ class _SparkDialect(SparkDialect):
         super().__init__(None)
         self.database = None
 
+        spark_session = SparkSession.builder.getOrCreate()
+        self.host = spark_session.conf.get("spark.driver.host")
+        self.port = spark_session.conf.get("spark.driver.port")
+
     def create_connection(self) -> Connection:
         """
         Create a connection.
