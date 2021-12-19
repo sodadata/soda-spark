@@ -367,6 +367,50 @@ def test_scan_execute_with_soda_server_client_scan_result_does_not_contain_any_e
     assert not scan_result.has_errors()
 
 
+def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
+    """Test conversions of test_result to dataframe."""
+    expected = spark_session.createDataFrame(
+        [
+            {
+                "test": {
+                    "id": "id",
+                    "title": "title",
+                    "expression": "expression",
+                    "metrics": ["metrics"],
+                    "column": "column",
+                },
+                "passed": True,
+                "skipped": False,
+                "values": {"value": 10},
+                "error": Exception("exception"),
+                "group_values": {"group": "by"},
+            }
+        ]
+        * 3
+    )
+
+    test_results = [
+        TestResult(
+            Test(
+                id="id",
+                title="title",
+                expression="expression",
+                metrics=["metric"],
+                column="column",
+            ),
+            passed=True,
+            skipped=False,
+            values={"value": 10},
+            error=Exception("exception"),
+            group_values={"group": "by"},
+        )
+    ] * 3
+
+    out = scan.testresults_to_data_frame(test_results)
+
+    assert sorted(expected.collect()) == sorted(out.collect())
+
+
 def test_scan_measurement_dataclass_fields(
     scan_definition: str, df: DataFrame
 ) -> None:
