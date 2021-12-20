@@ -8,8 +8,11 @@ from typing import BinaryIO
 import pytest
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import types as T  # noqa: N812
+from pyspark.sql.functions import col, when
 from sodasql.dialects.spark_dialect import SparkDialect
+from sodasql.scan.group_value import GroupValue
 from sodasql.scan.measurement import Measurement
+from sodasql.scan.scan_error import TestExecutionScanError
 from sodasql.scan.test import Test
 from sodasql.scan.test_result import TestResult
 from sodasql.soda_server_client.soda_server_client import SodaServerClient
@@ -372,22 +375,21 @@ def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
     expected = spark_session.createDataFrame(
         [
             {
-                "test": {
-                    "id": "id",
-                    "title": "title",
-                    "expression": "expression",
-                    "metrics": ["metrics"],
-                    "column": "column",
-                },
+                "test": Test(
+                    id="id",
+                    title="title",
+                    expression="expression",
+                    metrics=["metrics"],
+                    column="column",
+                ),
                 "passed": True,
                 "skipped": False,
-                "values": {"value": 10},
-                "error": Exception("exception"),
+                "values": {"value": "10"},
+                "error": "exception",
                 "group_values": {"group": "by"},
             }
         ]
-        * 3
-    )
+    ).select("error", "group_values", "passed", "skipped", "test", "values")
 
     test_results = [
         TestResult(
@@ -395,90 +397,80 @@ def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
                 id="id",
                 title="title",
                 expression="expression",
-                metrics=["metric"],
+                metrics=["metrics"],
                 column="column",
             ),
             passed=True,
             skipped=False,
             values={"value": 10},
-            error=Exception("exception"),
+            error="exception",
             group_values={"group": "by"},
         )
-    ] * 3
-
-    out = scan.testresults_to_data_frame(test_results)
-
+    ]
+    out = scan.testresults_to_data_frame(test_results).select(
+        "error", "group_values", "passed", "skipped", "test", "values"
+    )
     assert sorted(expected.collect()) == sorted(out.collect())
 
 
-def test_scan_measurement_dataclass_fields(
-    scan_definition: str, df: DataFrame
-) -> None:
-    """Valid if the expected fields are present in measurement dataclass is present."""
-    key_list = []
-    scan_result = scan.execute(scan_definition, df)
-    for key in scan_result.measurements[0].__dataclass_fields__:
-        key_list.append(key)
-    assert key_list == ["metric", "column_name", "value", "group_values"]
-
-
-# Identify what should we test for here. The idea is to verify if we have the same set of fields.
-def test_scan_testresult_dataclass_fields(
-    scan_definition: str, df: DataFrame
-) -> None:
-    """Valid if the expected fields are present in testresult dataclass is present."""
-    key_list = []
-    scan_result = scan.execute(scan_definition, df)
-    testresult_df = scan.testresults_to_data_frame(scan_result.test_results)
-    testresult_df.show(20)
-    for key in scan.test_result_to_dict(scan_result.test_results[0]):
-        key_list.append(key)
-    print(key_list)
-    assert (
-        key_list.sort()
-        == [
-            "columnName",
-            "description",
-            "expression",
-            "id",
-            "passed",
-            "skipped",
-            "title",
-            "values",
-            "metrics",
-            "error",
-            "group_values",
-        ].sort()
+def test_measurements_to_data_frame(spark_session: SparkSession) -> None:
+    """Test conversions of test_result to dataframe."""
+    expected = (
+        spark_session.createDataFrame(
+            [
+                {
+                    "metric": "values_count",
+                    "column_name": "officename",
+                    "value": "",
+                    "groupValues": [
+                        GroupValue(
+                            group={"statename": "statename"}, value="9872"
+                        )
+                    ],
+                }
+            ]
+        )
+        .withColumnRenamed("column_name", "columnName")
+        .select("columnName", "groupValues", "metric", "value")
+        .withColumn(
+            "value", when(col("value") == "", None).otherwise(col("value"))
+        )
     )
 
+    measurements = [
+        Measurement(
+            metric="values_count",
+            column_name="officename",
+            value="null",
+            group_values=[
+                GroupValue(group={"statename": "statename"}, value="9872")
+            ],
+        )
+    ]
+    out = scan.measurements_to_data_frame(measurements).select(
+        "columnName", "groupValues", "metric", "value"
+    )
+    assert sorted(expected.collect()) == sorted(out.collect())
 
-# # Modify assert statement. Currently testing the conversion of Measurements to Dataframe.
-# def test_scan_measurement_to_dataframe(
-#     scan_definition: str, df: DataFrame
-# ) -> None:
-#     """Valid if the expected measurement is present."""
-#     scan_result = scan.execute(scan_definition, df)
-#     measurement_df = scan.measurements_to_data_frame(scan_result.measurements)
 
-
-# def test_scan_testresult_to_dataframe(
-#     scan_definition: str,
-#     df: DataFrame
-# ) -> None:
-#     """Valid if the expected measurement is present."""
-
-#     scan_result = scan.execute(scan_definition, df)
-#     testresult_df = scan.testresults_to_data_frame(scan_result.test_results)
-#     testresult_df.show(20)
-#     assert False
-
-# def test_scan_scanerror_to_dataframe(
-#     scan_definition: str,
-#     df: DataFrame
-# ) -> None:
-#     """Valid if the expected measurement is present."""
-
-#     scan_result = scan.execute(scan_definition, df)
-#     scanerror_df = scan.scanerror_to_data_frame(scan_result.errors)
-#     scanerror_df.show(20)
-#     assert False
+def test_scanerror_to_data_frame(spark_session: SparkSession) -> None:
+    """Test conversions of test_result to dataframe."""
+    expected = spark_session.createDataFrame(
+        [
+            {
+                "type": "test_execution_error",
+                "message": 'Test "telangana_coun > 30" failed',
+                "exception": "name 'telangana_coun' is not defined",
+            }
+        ]
+    ).select("type", "message", "exception")
+    scanerrors = [
+        TestExecutionScanError(
+            message='Test "telangana_coun > 30" failed',
+            exception="name 'telangana_coun' is not defined",
+        )
+    ]
+    out = scan.scanerror_to_data_frame(scanerrors).select(
+        "type", "message", "exception"
+    )
+    assert sorted(expected.collect()) == sorted(out.collect())
