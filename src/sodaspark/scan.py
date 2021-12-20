@@ -278,6 +278,7 @@ def execute(
     df: DataFrame,
     *,
     soda_server_client: SodaServerClient | None = None,
+    as_frame: bool | None = False,
 ) -> ScanResult:
     """
     Execute a scan on a data frame.
@@ -290,6 +291,8 @@ def execute(
         The data frame to be scanned.
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
+    as_frame : bool
+        Flag to return results in Dataframe
 
     Returns
     -------
@@ -300,6 +303,8 @@ def execute(
     df.createOrReplaceTempView(scan_yml.table_name)
     scan = create_scan(scan_yml, soda_server_client=soda_server_client)
     scan.execute()
+    if as_frame:
+        return convert_scan_result_to_spark_data_frames(scan.scan_result)
     return scan.scan_result
 
 
