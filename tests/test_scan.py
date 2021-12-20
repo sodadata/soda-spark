@@ -65,6 +65,12 @@ sql_metrics:
     WHERE country = 'US'
   tests:
   - total_size_us > 5000
+- sql: |
+    SELECT country, count(id) as country_count
+    FROM demodata
+    GROUP BY country
+  group_fields:
+  - country
 """
 
 
@@ -415,7 +421,7 @@ def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
 
 
 def test_measurements_to_data_frame(spark_session: SparkSession) -> None:
-    """Test conversions of test_result to dataframe."""
+    """Test conversions of measurements to dataframe."""
     expected = spark_session.createDataFrame(
         [
             {
@@ -449,7 +455,7 @@ def test_measurements_to_data_frame(spark_session: SparkSession) -> None:
 
 
 def test_scanerror_to_data_frame(spark_session: SparkSession) -> None:
-    """Test conversions of test_result to dataframe."""
+    """Test conversions of scan_error to dataframe."""
     expected = spark_session.createDataFrame(
         [
             {
@@ -469,4 +475,18 @@ def test_scanerror_to_data_frame(spark_session: SparkSession) -> None:
     assert (
         expected.select(sorted(expected.columns)).collect()
         == out.select(sorted(out.columns)).collect()
+    )
+
+
+def test_scan_execute_return_as_data_frame(
+    scan_definition: str, df: DataFrame
+) -> None:
+    """Valid if row and column count match."""
+
+    scan_result = scan.execute(scan_definition, df, as_frame=True)
+    # Comparing rowcount and columncount of Dataframes for the scan_definition
+    assert ((88, 4), (4, 6), (0, 2)) == (
+        (scan_result[0].count(), len(scan_result[0].columns)),
+        (scan_result[1].count(), len(scan_result[1].columns)),
+        (scan_result[2].count(), len(scan_result[2].columns)),
     )
