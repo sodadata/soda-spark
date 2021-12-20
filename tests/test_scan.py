@@ -389,7 +389,7 @@ def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
                 "group_values": {"group": "by"},
             }
         ]
-    ).select("error", "group_values", "passed", "skipped", "test", "values")
+    )
 
     test_results = [
         TestResult(
@@ -407,50 +407,45 @@ def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
             group_values={"group": "by"},
         )
     ]
-    out = scan.testresults_to_data_frame(test_results).select(
-        "error", "group_values", "passed", "skipped", "test", "values"
+    out = scan.testresults_to_data_frame(test_results)
+    assert (
+        expected.select(sorted(expected.columns)).collect()
+        == out.select(sorted(out.columns)).collect()
     )
-    assert sorted(expected.collect()) == sorted(out.collect())
 
 
 def test_measurements_to_data_frame(spark_session: SparkSession) -> None:
     """Test conversions of test_result to dataframe."""
-    expected = (
-        spark_session.createDataFrame(
-            [
-                {
-                    "metric": "values_count",
-                    "column_name": "officename",
-                    "value": "",
-                    "groupValues": [
-                        GroupValue(
-                            group={"statename": "statename"}, value="9872"
-                        )
-                    ],
-                }
-            ]
-        )
-        .withColumnRenamed("column_name", "columnName")
-        .select("columnName", "groupValues", "metric", "value")
-        .withColumn(
-            "value", when(col("value") == "", None).otherwise(col("value"))
-        )
+    expected = spark_session.createDataFrame(
+        [
+            {
+                "metric": "values_count",
+                "column_name": "officename",
+                "value": "",
+                "group_values": [
+                    GroupValue(group={"statename": "statename"}, value="9872")
+                ],
+            }
+        ]
+    ).withColumn(
+        "value", when(col("value") == "", None).otherwise(col("value"))
     )
 
     measurements = [
         Measurement(
             metric="values_count",
             column_name="officename",
-            value="null",
+            value=None,
             group_values=[
                 GroupValue(group={"statename": "statename"}, value="9872")
             ],
         )
     ]
-    out = scan.measurements_to_data_frame(measurements).select(
-        "columnName", "groupValues", "metric", "value"
+    out = scan.measurements_to_data_frame(measurements)
+    assert (
+        expected.select(sorted(expected.columns)).collect()
+        == out.select(sorted(out.columns)).collect()
     )
-    assert sorted(expected.collect()) == sorted(out.collect())
 
 
 def test_scanerror_to_data_frame(spark_session: SparkSession) -> None:
@@ -458,19 +453,20 @@ def test_scanerror_to_data_frame(spark_session: SparkSession) -> None:
     expected = spark_session.createDataFrame(
         [
             {
-                "type": "test_execution_error",
-                "message": 'Test "telangana_coun > 30" failed',
-                "exception": "name 'telangana_coun' is not defined",
+                "message": 'Test "metric_name > 30" failed',
+                "exception": "name 'metric_name' is not defined",
             }
         ]
-    ).select("type", "message", "exception")
+    )
+
     scanerrors = [
         TestExecutionScanError(
-            message='Test "telangana_coun > 30" failed',
-            exception="name 'telangana_coun' is not defined",
+            message='Test "metric_name > 30" failed',
+            exception="name 'metric_name' is not defined",
         )
     ]
-    out = scan.scanerror_to_data_frame(scanerrors).select(
-        "type", "message", "exception"
+    out = scan.scanerror_to_data_frame(scanerrors)
+    assert (
+        expected.select(sorted(expected.columns)).collect()
+        == out.select(sorted(out.columns)).collect()
     )
-    assert sorted(expected.collect()) == sorted(out.collect())

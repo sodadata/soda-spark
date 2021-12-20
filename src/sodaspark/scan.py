@@ -330,16 +330,16 @@ def measurements_to_data_frame(measurements: list[Measurement]) -> DataFrame:
     schema = T.StructType(
         [
             T.StructField("metric", T.StringType(), True),
-            T.StructField("columnName", T.StringType(), True),
+            T.StructField("column_name", T.StringType(), True),
             T.StructField("value", T.StringType(), True),
             T.StructField(
-                "groupValues", T.ArrayType(schema_group_values, True), True
+                "group_values", T.ArrayType(schema_group_values, True), True
             ),
         ]
     )
     spark_session = SparkSession.builder.getOrCreate()
     out = spark_session.createDataFrame(
-        [measurement.to_dict() for measurement in measurements],
+        measurements,
         schema=schema,
     )
     return out
@@ -404,15 +404,12 @@ def scanerror_to_data_frame(scanerrors: list[ScanError]) -> DataFrame:
     """
     schema = T.StructType(
         [
-            T.StructField("type", T.StringType(), True),
             T.StructField("message", T.StringType(), True),
             T.StructField("exception", T.StringType(), True),
         ]
     )
     spark_session = SparkSession.builder.getOrCreate()
-    out = spark_session.createDataFrame(
-        [scanerror.to_dict() for scanerror in scanerrors], schema=schema
-    )
+    out = spark_session.createDataFrame(scanerrors, schema=schema)
     return out
 
 
