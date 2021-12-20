@@ -292,7 +292,7 @@ def execute(
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
     as_frame : bool
-        Flag to return results in Dataframe
+        Flag to return results in Dataframe (default : False)
 
     Returns
     -------
