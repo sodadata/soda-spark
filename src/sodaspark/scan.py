@@ -7,7 +7,6 @@ from typing import Any
 
 from pyspark.sql import DataFrame, Row, SparkSession
 from pyspark.sql import types as T
-from sodasql.common.json_helper import JsonHelper
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
@@ -322,7 +321,9 @@ def measurements_to_data_frame(measurements: list[Measurement]) -> DataFrame:
     """
     schema_group_values = T.StructType(
         [
-            T.StructField("group", T.StringType(), True),
+            T.StructField(
+                "group", T.MapType(T.StringType(), T.StringType()), True
+            ),
             T.StructField("value", T.StringType(), True),
         ]
     )
@@ -331,12 +332,14 @@ def measurements_to_data_frame(measurements: list[Measurement]) -> DataFrame:
             T.StructField("metric", T.StringType(), True),
             T.StructField("columnName", T.StringType(), True),
             T.StructField("value", T.StringType(), True),
-            T.StructField("groupValues", schema_group_values, True),
+            T.StructField(
+                "groupValues", T.ArrayType(schema_group_values, True), True
+            ),
         ]
     )
     spark_session = SparkSession.builder.getOrCreate()
     out = spark_session.createDataFrame(
-        measurements,
+        [measurement.to_dict() for measurement in measurements],
         schema=schema,
     )
     return out
@@ -354,57 +357,37 @@ def testresults_to_data_frame(testresults: list[TestResult]) -> DataFrame:
     out : DataFrame
         The testresults as data frame.
     """
-    schema_group_values = T.StructType(
+
+    schema_test = T.StructType(
         [
-            T.StructField("expression_result", T.StringType(), True),
-            T.StructField("row_count", T.LongType(), True),
+            T.StructField("column", T.StringType(), True),
+            T.StructField("expression", T.StringType(), True),
+            T.StructField("id", T.StringType(), True),
+            T.StructField("metrics", T.ArrayType(T.StringType(), True), True),
+            T.StructField("title", T.StringType(), True),
         ]
     )
 
     schema = T.StructType(
         [
-            T.StructField("id", T.StringType(), True),
-            T.StructField("title", T.StringType(), True),
-            T.StructField("description", T.StringType(), True),
-            T.StructField("expression", T.StringType(), True),
-            T.StructField("metrics", T.StringType(), True),
-            T.StructField("columnName", T.StringType(), True),
-            T.StructField("error", T.StringType(), True),
+            T.StructField("test", schema_test, True),
             T.StructField("passed", T.BooleanType(), True),
             T.StructField("skipped", T.BooleanType(), True),
-            T.StructField("values", schema_group_values, True),
-            T.StructField("group_values", T.StringType(), True),
+            T.StructField(
+                "values", T.MapType(T.StringType(), T.StringType()), True
+            ),
+            T.StructField("error", T.StringType(), True),
+            T.StructField(
+                "group_values", T.MapType(T.StringType(), T.StringType()), True
+            ),
         ]
     )
     spark_session = SparkSession.builder.getOrCreate()
     out = spark_session.createDataFrame(
-        [test_result_to_dict(testresult) for testresult in testresults],
+        testresults,
         schema=schema,
     )
     return out
-
-
-# Created this work around to return a static structure
-# Soda returns different structures of Test_Result and is also missing the metrics field
-def test_result_to_dict(testresult: TestResult) -> dict:
-    if not testresult or not testresult.test.expression:
-        return {"error": "Invalid test result"}
-    test_result_json = {
-        "id": testresult.test.id,
-        "title": testresult.test.title,
-        "description": testresult.test.title,  # for backwards compatibility
-        "expression": testresult.test.expression,
-        "metrics": testresult.test.metrics,
-    }
-    test_result_json["columnName"] = testresult.test.column
-    test_result_json["error"] = str(testresult.error)
-    test_result_json["passed"] = testresult.passed
-    test_result_json["skipped"] = testresult.skipped
-    test_result_json["values"] = JsonHelper.to_jsonnable(testresult.values)
-    test_result_json["groupValues"] = JsonHelper.to_jsonnable(
-        testresult.group_values
-    )
-    return test_result_json
 
 
 def scanerror_to_data_frame(scanerrors: list[ScanError]) -> DataFrame:
@@ -423,10 +406,13 @@ def scanerror_to_data_frame(scanerrors: list[ScanError]) -> DataFrame:
         [
             T.StructField("type", T.StringType(), True),
             T.StructField("message", T.StringType(), True),
+            T.StructField("exception", T.StringType(), True),
         ]
     )
     spark_session = SparkSession.builder.getOrCreate()
-    out = spark_session.createDataFrame(scanerrors, schema=schema)
+    out = spark_session.createDataFrame(
+        [scanerror.to_dict() for scanerror in scanerrors], schema=schema
+    )
     return out
 
 
