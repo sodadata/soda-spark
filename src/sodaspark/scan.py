@@ -6,7 +6,7 @@ from types import TracebackType
 from typing import Any
 
 from pyspark.sql import DataFrame, Row, SparkSession
-from pyspark.sql import types as T
+from pyspark.sql import types as T  # noqa: N812
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.file_system import FileSystemSingleton
@@ -282,7 +282,7 @@ def execute(
     df: DataFrame,
     *,
     soda_server_client: SodaServerClient | None = None,
-    as_frame: bool | None = False,
+    as_frames: bool | None = False,
 ) -> ScanResult:
     """
     Execute a scan on a data frame.
@@ -307,9 +307,11 @@ def execute(
     df.createOrReplaceTempView(scan_yml.table_name)
     scan = create_scan(scan_yml, soda_server_client=soda_server_client)
     scan.execute()
-    if as_frame:
-        return convert_scan_result_to_spark_data_frames(scan.scan_result)
-    return scan.scan_result
+    if as_frames:
+        result = convert_scan_result_to_spark_data_frames(scan.scan_result)
+    else:
+        result = scan.scan_result
+    return result
 
 
 def measurements_to_data_frame(measurements: list[Measurement]) -> DataFrame:
@@ -350,7 +352,7 @@ def measurements_to_data_frame(measurements: list[Measurement]) -> DataFrame:
     return out
 
 
-def testresults_to_data_frame(testresults: list[TestResult]) -> DataFrame:
+def test_results_to_data_frame(test_results: list[TestResult]) -> DataFrame:
     """
     Convert TestResults to a data frame.
     Parameters
@@ -389,13 +391,13 @@ def testresults_to_data_frame(testresults: list[TestResult]) -> DataFrame:
     )
     spark_session = SparkSession.builder.getOrCreate()
     out = spark_session.createDataFrame(
-        testresults,
+        test_results,
         schema=schema,
     )
     return out
 
 
-def scanerror_to_data_frame(scanerrors: list[ScanError]) -> DataFrame:
+def scan_errors_to_data_frame(scan_errors: list[ScanError]) -> DataFrame:
     """
     Convert ScanError to a data frame.
     Parameters
@@ -414,7 +416,7 @@ def scanerror_to_data_frame(scanerrors: list[ScanError]) -> DataFrame:
         ]
     )
     spark_session = SparkSession.builder.getOrCreate()
-    out = spark_session.createDataFrame(scanerrors, schema=schema)
+    out = spark_session.createDataFrame(scan_errors, schema=schema)
     return out
 
 
@@ -437,6 +439,6 @@ def convert_scan_result_to_spark_data_frames(
     """
     return (
         measurements_to_data_frame(scan_result.measurements),
-        testresults_to_data_frame(scan_result.test_results),
-        scanerror_to_data_frame(scan_result.errors),
+        test_results_to_data_frame(scan_result.test_results),
+        scan_errors_to_data_frame(scan_result.errors),
     )
