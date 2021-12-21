@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2bde2c2dcea592b58d319c90b2c82a0c0e8eb046
 - Provides the ability to get the scan results in Dataframes. ([#99](https://github.com/sodadata/soda-spark/pull/99))
   - measurements
   - test_results
@@ -7,9 +10,12 @@
 Contributors:
 - [Anil Kulkarni](https://github.com/anilkulkarni87) ([#99](https://github.com/sodadata/soda-spark/pull/99))
 
+<<<<<<< HEAD
 - Use version range for `soda-spark-sql` dependency
 - Add `host` and `port` attributes to `_SparkDialect`
 
+=======
+>>>>>>> 2bde2c2dcea592b58d319c90b2c82a0c0e8eb046
 ## [0.2.3] - 2021-11-18
 
 - Fix samples not working
