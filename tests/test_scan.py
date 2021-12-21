@@ -7,8 +7,8 @@ from typing import BinaryIO
 
 import pytest
 from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import functions as F  # noqa: N812
 from pyspark.sql import types as T  # noqa: N812
-from pyspark.sql.functions import col, when
 from sodasql.dialects.spark_dialect import SparkDialect
 from sodasql.scan.group_value import GroupValue
 from sodasql.scan.measurement import Measurement
@@ -413,7 +413,7 @@ def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
             group_values={"group": "by"},
         )
     ]
-    out = scan.testresults_to_data_frame(test_results)
+    out = scan.test_results_to_data_frame(test_results)
     assert (
         expected.select(sorted(expected.columns)).collect()
         == out.select(sorted(out.columns)).collect()
@@ -434,7 +434,7 @@ def test_measurements_to_data_frame(spark_session: SparkSession) -> None:
             }
         ]
     ).withColumn(
-        "value", when(col("value") == "", None).otherwise(col("value"))
+        "value", F.when(F.col("value") == "", None).otherwise(F.col("value"))
     )
 
     measurements = [
@@ -471,7 +471,7 @@ def test_scanerror_to_data_frame(spark_session: SparkSession) -> None:
             exception="name 'metric_name' is not defined",
         )
     ]
-    out = scan.scanerror_to_data_frame(scanerrors)
+    out = scan.scan_errors_to_data_frame(scanerrors)
     assert (
         expected.select(sorted(expected.columns)).collect()
         == out.select(sorted(out.columns)).collect()
@@ -483,7 +483,7 @@ def test_scan_execute_return_as_data_frame(
 ) -> None:
     """Valid if row and column count match."""
 
-    scan_result = scan.execute(scan_definition, df, as_frame=True)
+    scan_result = scan.execute(scan_definition, df, as_frames=True)
     # Comparing rowcount and columncount of Dataframes for the scan_definition
     assert ((88, 4), (4, 6), (0, 2)) == (
         (scan_result[0].count(), len(scan_result[0].columns)),
