@@ -3,6 +3,9 @@ Create a release.
 
 Source: https://github.com/tox-dev/tox/blob/master/tasks/release.py
 """
+
+from __future__ import annotations
+
 import datetime as dt
 from pathlib import Path
 
