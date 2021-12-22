@@ -7,9 +7,12 @@ from typing import BinaryIO
 
 import pytest
 from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import functions as F  # noqa: N812
 from pyspark.sql import types as T  # noqa: N812
 from sodasql.dialects.spark_dialect import SparkDialect
+from sodasql.scan.group_value import GroupValue
 from sodasql.scan.measurement import Measurement
+from sodasql.scan.scan_error import TestExecutionScanError
 from sodasql.scan.test import Test
 from sodasql.scan.test_result import TestResult
 from sodasql.soda_server_client.soda_server_client import SodaServerClient
@@ -62,6 +65,12 @@ sql_metrics:
     WHERE country = 'US'
   tests:
   - total_size_us > 5000
+- sql: |
+    SELECT country, count(id) as country_count
+    FROM demodata
+    GROUP BY country
+  group_fields:
+  - country
 """
 
 
@@ -365,3 +374,121 @@ def test_scan_execute_with_soda_server_client_scan_result_does_not_contain_any_e
     )
 
     assert not scan_result.has_errors()
+
+
+def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
+    """Test conversions of test_result to dataframe."""
+    expected = spark_session.createDataFrame(
+        [
+            {
+                "test": Test(
+                    id="id",
+                    title="title",
+                    expression="expression",
+                    metrics=["metrics"],
+                    column="column",
+                    source="source",
+                ),
+                "passed": True,
+                "skipped": False,
+                "values": {"value": "10"},
+                "error": "exception",
+                "group_values": {"group": "by"},
+            }
+        ]
+    )
+
+    test_results = [
+        TestResult(
+            Test(
+                id="id",
+                title="title",
+                expression="expression",
+                metrics=["metrics"],
+                column="column",
+                source="source",
+            ),
+            passed=True,
+            skipped=False,
+            values={"value": 10},
+            error="exception",
+            group_values={"group": "by"},
+        )
+    ]
+    out = scan.test_results_to_data_frame(test_results)
+    assert (
+        expected.select(sorted(expected.columns)).collect()
+        == out.select(sorted(out.columns)).collect()
+    )
+
+
+def test_measurements_to_data_frame(spark_session: SparkSession) -> None:
+    """Test conversions of measurements to dataframe."""
+    expected = spark_session.createDataFrame(
+        [
+            {
+                "metric": "values_count",
+                "column_name": "officename",
+                "value": "",
+                "group_values": [
+                    GroupValue(group={"statename": "statename"}, value="9872")
+                ],
+            }
+        ]
+    ).withColumn(
+        "value", F.when(F.col("value") == "", None).otherwise(F.col("value"))
+    )
+
+    measurements = [
+        Measurement(
+            metric="values_count",
+            column_name="officename",
+            value=None,
+            group_values=[
+                GroupValue(group={"statename": "statename"}, value="9872")
+            ],
+        )
+    ]
+    out = scan.measurements_to_data_frame(measurements)
+    assert (
+        expected.select(sorted(expected.columns)).collect()
+        == out.select(sorted(out.columns)).collect()
+    )
+
+
+def test_scanerror_to_data_frame(spark_session: SparkSession) -> None:
+    """Test conversions of scan_error to dataframe."""
+    expected = spark_session.createDataFrame(
+        [
+            {
+                "message": 'Test "metric_name > 30" failed',
+                "exception": "name 'metric_name' is not defined",
+            }
+        ]
+    )
+
+    scanerrors = [
+        TestExecutionScanError(
+            message='Test "metric_name > 30" failed',
+            exception="name 'metric_name' is not defined",
+        )
+    ]
+    out = scan.scan_errors_to_data_frame(scanerrors)
+    assert (
+        expected.select(sorted(expected.columns)).collect()
+        == out.select(sorted(out.columns)).collect()
+    )
+
+
+def test_scan_execute_return_as_data_frame(
+    scan_definition: str, df: DataFrame
+) -> None:
+    """Valid if row and column count match."""
+
+    scan_result = scan.execute(scan_definition, df, as_frames=True)
+    # Comparing rowcount and columncount of Dataframes for the scan_definition
+    assert ((88, 4), (4, 6), (0, 2)) == (
+        (scan_result[0].count(), len(scan_result[0].columns)),
+        (scan_result[1].count(), len(scan_result[1].columns)),
+        (scan_result[2].count(), len(scan_result[2].columns)),
+    )

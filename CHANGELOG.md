@@ -1,5 +1,13 @@
+
+- Provides the ability to get the scan results in Dataframes. ([#99](https://github.com/sodadata/soda-spark/pull/99))
+  - measurements
+  - test_results
+  - scan_errors
 - Use version range for `soda-spark-sql` dependency
 - Add `host` and `port` attributes to `_SparkDialect`
+
+Contributors:
+- [Anil Kulkarni](https://github.com/anilkulkarni87) ([#99](https://github.com/sodadata/soda-spark/pull/99))
 
 ## [0.2.3] - 2021-11-18
 
