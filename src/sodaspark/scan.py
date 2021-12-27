@@ -333,12 +333,12 @@ def test_results_to_data_frame(test_results: list[TestResult]) -> DataFrame:
     """
     schema_test = T.StructType(
         [
-            T.StructField("column", T.StringType(), True),
-            T.StructField("expression", T.StringType(), True),
             T.StructField("id", T.StringType(), True),
-            T.StructField("metrics", T.ArrayType(T.StringType(), True), True),
-            T.StructField("source", T.StringType(), True),
             T.StructField("title", T.StringType(), True),
+            T.StructField("expression", T.StringType(), True),
+            T.StructField("metrics", T.ArrayType(T.StringType(), True), True),
+            T.StructField("column", T.StringType(), True),
+            T.StructField("source", T.StringType(), True),
         ]
     )
 
@@ -357,10 +357,7 @@ def test_results_to_data_frame(test_results: list[TestResult]) -> DataFrame:
         ]
     )
     spark_session = SparkSession.builder.getOrCreate()
-    out = spark_session.createDataFrame(
-        test_results,
-        schema=schema,
-    )
+    out = spark_session.createDataFrame(test_results, schema=schema)
     return out
 
 
