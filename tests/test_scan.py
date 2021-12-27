@@ -145,7 +145,7 @@ def scan_definition() -> str:
 
 
 @dataclass
-class Row:
+class Record:
     id: str
     name: str
     size: int
@@ -161,12 +161,12 @@ def df(spark_session: SparkSession) -> DataFrame:
     date = dt.date(2021, 1, 1)
     id = "a76824f0-50c0-11eb-8be8-88e9fe6293fd"
     data = [
-        Row(id, "Paula Landry", 3006, date, "28,42 %", "UK"),
-        Row(id, "Kevin Crawford", 7243, date, "22,75 %", "NL"),
-        Row(id, "Kimberly Green", 6589, date, "11,92 %", "US"),
-        Row(id, "William Fox", 1972, date, "14,26 %", "UK"),
-        Row(id, "Cynthia Gonzales", 3687, date, "18,32 %", "US"),
-        Row(id, "Kim Brown", 1277, date, "16,37 %", "US"),
+        Record(id, "Paula Landry", 3006, date, "28,42 %", "UK"),
+        Record(id, "Kevin Crawford", 7243, date, "22,75 %", "NL"),
+        Record(id, "Kimberly Green", 6589, date, "11,92 %", "US"),
+        Record(id, "William Fox", 1972, date, "14,26 %", "UK"),
+        Record(id, "Cynthia Gonzales", 3687, date, "18,32 %", "US"),
+        Record(id, "Kim Brown", 1277, date, "16,37 %", "US"),
     ]
 
     schema = T.StructType(
