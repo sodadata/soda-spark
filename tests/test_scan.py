@@ -376,6 +376,45 @@ def test_scan_execute_with_soda_server_client_scan_result_does_not_contain_any_e
     assert not scan_result.has_errors()
 
 
+def test_measurements_to_data_frame(spark_session: SparkSession) -> None:
+    """
+    Test conversions of measurements to dataframe.
+
+    A failure of this test indicates that the `Measurement` dataclass has been
+    changed in `soda-sql`. If a failure happens, the code needs to be updated to
+    accomodate for that change. Start with updating the expected output data
+    frame in this test, then change the schema used for converting the
+    measurements.
+    """
+    expected = spark_session.createDataFrame(
+        [
+            Row(
+                metric="values_count",
+                column_name="officename",
+                value="",
+                group_values=[
+                    Row(group={"statename": "statename"}, value="9872")
+                ],
+            )
+        ]
+    ).withColumn(
+        "value", F.when(F.col("value") == "", None).otherwise(F.col("value"))
+    )
+
+    measurements = [
+        Measurement(
+            metric="values_count",
+            column_name="officename",
+            value=None,
+            group_values=[
+                GroupValue(group={"statename": "statename"}, value="9872")
+            ],
+        )
+    ]
+    out = scan.measurements_to_data_frame(measurements)
+    assert expected.collect() == out.collect()
+
+
 def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
     """
     Test conversions of test_result to dataframe.
@@ -425,40 +464,6 @@ def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
     ]
     out = scan.test_results_to_data_frame(test_results)
     assert expected.collect() == out.collect()
-
-
-def test_measurements_to_data_frame(spark_session: SparkSession) -> None:
-    """Test conversions of measurements to dataframe."""
-    expected = spark_session.createDataFrame(
-        [
-            {
-                "metric": "values_count",
-                "column_name": "officename",
-                "value": "",
-                "group_values": [
-                    GroupValue(group={"statename": "statename"}, value="9872")
-                ],
-            }
-        ]
-    ).withColumn(
-        "value", F.when(F.col("value") == "", None).otherwise(F.col("value"))
-    )
-
-    measurements = [
-        Measurement(
-            metric="values_count",
-            column_name="officename",
-            value=None,
-            group_values=[
-                GroupValue(group={"statename": "statename"}, value="9872")
-            ],
-        )
-    ]
-    out = scan.measurements_to_data_frame(measurements)
-    assert (
-        expected.select(sorted(expected.columns)).collect()
-        == out.select(sorted(out.columns)).collect()
-    )
 
 
 def test_scanerror_to_data_frame(spark_session: SparkSession) -> None:
