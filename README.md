@@ -90,6 +90,21 @@ See the
 [scan result object](https://github.com/sodadata/soda-sql/blob/main/core/sodasql/scan/scan_result.py)
 for all attributes and methods.
 
+Or, return Spark data frames:
+
+``` python
+>>> measurements, test_results, errors = scan.execute(scan_yml, df, as_frames=True)
+>>>
+>>> measurements  # doctest: +ELLIPSIS
+DataFrame[metric: string, column_name: string, value: string, ...]
+>>> test_results  # doctest: +ELLIPSIS
+DataFrame[test: struct<...>, passed: boolean, skipped: boolean, values: map<string,string>, ...]
+>>>
+```
+
+See the `_to_data_frame` functions in the [`scan.py`](./src/sodaspark/scan.py)
+to see how the conversion is done.
+
 ### Send results to Soda cloud
 
 Send the scan result to Soda cloud.
