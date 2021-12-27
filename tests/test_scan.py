@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import BinaryIO
 
 import pytest
-from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql import DataFrame, Row, SparkSession
 from pyspark.sql import functions as F  # noqa: N812
 from pyspark.sql import types as T  # noqa: N812
 from sodasql.dialects.spark_dialect import SparkDialect
@@ -145,7 +145,7 @@ def scan_definition() -> str:
 
 
 @dataclass
-class Row:
+class Record:
     id: str
     name: str
     size: int
@@ -161,12 +161,12 @@ def df(spark_session: SparkSession) -> DataFrame:
     date = dt.date(2021, 1, 1)
     id = "a76824f0-50c0-11eb-8be8-88e9fe6293fd"
     data = [
-        Row(id, "Paula Landry", 3006, date, "28,42 %", "UK"),
-        Row(id, "Kevin Crawford", 7243, date, "22,75 %", "NL"),
-        Row(id, "Kimberly Green", 6589, date, "11,92 %", "US"),
-        Row(id, "William Fox", 1972, date, "14,26 %", "UK"),
-        Row(id, "Cynthia Gonzales", 3687, date, "18,32 %", "US"),
-        Row(id, "Kim Brown", 1277, date, "16,37 %", "US"),
+        Record(id, "Paula Landry", 3006, date, "28,42 %", "UK"),
+        Record(id, "Kevin Crawford", 7243, date, "22,75 %", "NL"),
+        Record(id, "Kimberly Green", 6589, date, "11,92 %", "US"),
+        Record(id, "William Fox", 1972, date, "14,26 %", "UK"),
+        Record(id, "Cynthia Gonzales", 3687, date, "18,32 %", "US"),
+        Record(id, "Kim Brown", 1277, date, "16,37 %", "US"),
     ]
 
     schema = T.StructType(
@@ -213,6 +213,17 @@ def test_create_scan_has_spark_dialect(
     scan_yml = scan.create_scan_yml(scan_definition)
     scanner = scan.create_scan(scan_yml)
     assert isinstance(scanner.dialect, SparkDialect)
+
+
+def test_scan_execute_scan_result_does_not_contain_any_errors(
+    scan_definition: str,
+    df: DataFrame,
+) -> None:
+    """The scan results should not contain any erros."""
+
+    scan_result = scan.execute(scan_definition, df)
+
+    assert not scan_result.has_errors()
 
 
 @pytest.mark.parametrize(
@@ -335,17 +346,6 @@ def test_scan_execute_contains_expected_test_result(
     )
 
 
-def test_scan_execute_scan_result_does_not_contain_any_errors(
-    scan_definition: str,
-    df: DataFrame,
-) -> None:
-    """The scan results should not contain any erros."""
-
-    scan_result = scan.execute(scan_definition, df)
-
-    assert not scan_result.has_errors()
-
-
 def test_excluded_columns_date_is_not_present(
     scan_definition: str,
     df: DataFrame,
@@ -376,12 +376,59 @@ def test_scan_execute_with_soda_server_client_scan_result_does_not_contain_any_e
     assert not scan_result.has_errors()
 
 
-def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
-    """Test conversions of test_result to dataframe."""
+def test_measurements_to_data_frame(spark_session: SparkSession) -> None:
+    """
+    Test conversions of measurements to dataframe.
+
+    A failure of this test indicates that the `Measurement` dataclass has been
+    changed in `soda-sql`. If a failure happens, the code needs to be updated to
+    accomodate for that change. Start with updating the expected output data
+    frame in this test, then change the schema used for converting the
+    measurements.
+    """
     expected = spark_session.createDataFrame(
         [
-            {
-                "test": Test(
+            Row(
+                metric="values_count",
+                column_name="officename",
+                value="",
+                group_values=[
+                    Row(group={"statename": "statename"}, value="9872")
+                ],
+            )
+        ]
+    ).withColumn(
+        "value", F.when(F.col("value") == "", None).otherwise(F.col("value"))
+    )
+
+    measurements = [
+        Measurement(
+            metric="values_count",
+            column_name="officename",
+            value=None,
+            group_values=[
+                GroupValue(group={"statename": "statename"}, value="9872")
+            ],
+        )
+    ]
+    out = scan.measurements_to_data_frame(measurements)
+    assert expected.collect() == out.collect()
+
+
+def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
+    """
+    Test conversions of test_result to dataframe.
+
+    A failure of this test indicates that the `TestResult` dataclass has been
+    changed in `soda-sql`. If a failure happens, the code needs to be updated to
+    accomodate for that change. Start with updating the expected output data
+    frame in this test, then change the schema used for converting the test
+    results.
+    """
+    expected = spark_session.createDataFrame(
+        [
+            Row(
+                test=Row(
                     id="id",
                     title="title",
                     expression="expression",
@@ -389,12 +436,12 @@ def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
                     column="column",
                     source="source",
                 ),
-                "passed": True,
-                "skipped": False,
-                "values": {"value": "10"},
-                "error": "exception",
-                "group_values": {"group": "by"},
-            }
+                passed=True,
+                skipped=False,
+                values={"value": "10"},
+                error="exception",
+                group_values={"group": "by"},
+            )
         ]
     )
 
@@ -416,68 +463,36 @@ def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
         )
     ]
     out = scan.test_results_to_data_frame(test_results)
-    assert (
-        expected.select(sorted(expected.columns)).collect()
-        == out.select(sorted(out.columns)).collect()
-    )
+    assert expected.collect() == out.collect()
 
 
-def test_measurements_to_data_frame(spark_session: SparkSession) -> None:
-    """Test conversions of measurements to dataframe."""
+def test_scan_error_to_data_frame(spark_session: SparkSession) -> None:
+    """
+    Test conversions of scan_error to dataframe.
+
+    A failure of this test indicates that the `ScanError` dataclass has been
+    changed in `soda-sql`. If a failure happens, the code needs to be updated to
+    accomodate for that change. Start with updating the expected output data
+    frame in this test, then change the schema used for converting the scan
+    error.
+    """
     expected = spark_session.createDataFrame(
         [
-            {
-                "metric": "values_count",
-                "column_name": "officename",
-                "value": "",
-                "group_values": [
-                    GroupValue(group={"statename": "statename"}, value="9872")
-                ],
-            }
-        ]
-    ).withColumn(
-        "value", F.when(F.col("value") == "", None).otherwise(F.col("value"))
-    )
-
-    measurements = [
-        Measurement(
-            metric="values_count",
-            column_name="officename",
-            value=None,
-            group_values=[
-                GroupValue(group={"statename": "statename"}, value="9872")
-            ],
-        )
-    ]
-    out = scan.measurements_to_data_frame(measurements)
-    assert (
-        expected.select(sorted(expected.columns)).collect()
-        == out.select(sorted(out.columns)).collect()
-    )
-
-
-def test_scanerror_to_data_frame(spark_session: SparkSession) -> None:
-    """Test conversions of scan_error to dataframe."""
-    expected = spark_session.createDataFrame(
-        [
-            {
-                "message": 'Test "metric_name > 30" failed',
-                "exception": "name 'metric_name' is not defined",
-            }
+            Row(
+                message='Test "metric_name > 30" failed',
+                exception="name 'metric_name' is not defined",
+            )
         ]
     )
 
-    scanerrors = [
+    scan_errors = [
         TestExecutionScanError(
             message='Test "metric_name > 30" failed',
             exception="name 'metric_name' is not defined",
         )
     ]
-    out = scan.scan_errors_to_data_frame(scanerrors)
-    assert (
-        expected.select(sorted(expected.columns)).collect()
-        == out.select(sorted(out.columns)).collect()
-    )
+    out = scan.scan_errors_to_data_frame(scan_errors)
+    assert expected.collect() == out.collect()
 
 
 def test_scan_execute_return_as_data_frame(
