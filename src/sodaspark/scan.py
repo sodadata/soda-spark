@@ -310,10 +310,7 @@ def measurements_to_data_frame(measurements: list[Measurement]) -> DataFrame:
         ]
     )
     spark_session = SparkSession.builder.getOrCreate()
-    out = spark_session.createDataFrame(
-        measurements,
-        schema=schema,
-    )
+    out = spark_session.createDataFrame(measurements, schema=schema)
     return out
 
 
