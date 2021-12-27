@@ -466,28 +466,33 @@ def test_test_results_to_data_frame(spark_session: SparkSession) -> None:
     assert expected.collect() == out.collect()
 
 
-def test_scanerror_to_data_frame(spark_session: SparkSession) -> None:
-    """Test conversions of scan_error to dataframe."""
+def test_scan_error_to_data_frame(spark_session: SparkSession) -> None:
+    """
+    Test conversions of scan_error to dataframe.
+
+    A failure of this test indicates that the `ScanError` dataclass has been
+    changed in `soda-sql`. If a failure happens, the code needs to be updated to
+    accomodate for that change. Start with updating the expected output data
+    frame in this test, then change the schema used for converting the scan
+    error.
+    """
     expected = spark_session.createDataFrame(
         [
-            {
-                "message": 'Test "metric_name > 30" failed',
-                "exception": "name 'metric_name' is not defined",
-            }
+            Row(
+                message='Test "metric_name > 30" failed',
+                exception="name 'metric_name' is not defined",
+            )
         ]
     )
 
-    scanerrors = [
+    scan_errors = [
         TestExecutionScanError(
             message='Test "metric_name > 30" failed',
             exception="name 'metric_name' is not defined",
         )
     ]
-    out = scan.scan_errors_to_data_frame(scanerrors)
-    assert (
-        expected.select(sorted(expected.columns)).collect()
-        == out.select(sorted(out.columns)).collect()
-    )
+    out = scan.scan_errors_to_data_frame(scan_errors)
+    assert expected.collect() == out.collect()
 
 
 def test_scan_execute_return_as_data_frame(
