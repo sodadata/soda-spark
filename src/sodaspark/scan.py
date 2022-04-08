@@ -250,7 +250,7 @@ def create_warehouse() -> Warehouse:
 
 
 def create_scan(
-    scan_yml: ScanYml, soda_server_client: SodaServerClient | None = None
+    scan_yml: ScanYml, variables: dict = None, soda_server_client: SodaServerClient | None = None
 ) -> Scan:
     """
     Create a scan object.
@@ -259,6 +259,7 @@ def create_scan(
     ----------
     scan_yml : ScanYml
         The scan yml.
+    variables: variables to be substituted in scan yml
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
 
@@ -272,6 +273,7 @@ def create_scan(
         warehouse=warehouse,
         scan_yml=scan_yml,
         soda_server_client=soda_server_client,
+        variables=variables,
         time=dt.datetime.now(tz=dt.timezone.utc).isoformat(timespec="seconds"),
     )
     return scan
@@ -413,6 +415,7 @@ def execute(
     scan_definition: str | Path,
     df: DataFrame,
     *,
+    variables: dict | None = None,
     soda_server_client: SodaServerClient | None = None,
     as_frames: bool | None = False,
 ) -> ScanResult:
@@ -425,6 +428,8 @@ def execute(
         The path to a scan file or the content of a scan file.
     df: DataFrame
         The data frame to be scanned.
+    variables: Optional[dict] (default : None)
+        Variables to be substituted in scan yml
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
     as_frames : bool (default : False)
@@ -438,7 +443,7 @@ def execute(
     scan_yml = create_scan_yml(scan_definition)
     df.createOrReplaceTempView(scan_yml.table_name)
 
-    scan = create_scan(scan_yml, soda_server_client=soda_server_client)
+    scan = create_scan(scan_yml, variables=variables, soda_server_client=soda_server_client)
     scan.execute()
 
     if as_frames:
