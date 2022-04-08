@@ -19,8 +19,8 @@ repos:
   rev: v0.910
   hooks:
   - id: mypy
-- repo: https://github.com/ambv/black
-  rev: 21.8b0
+- repo: https://github.com/psf/black
+  rev: 22.3.0
   hooks:
   - id: black
     name: Run black formatter

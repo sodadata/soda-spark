@@ -250,7 +250,9 @@ def create_warehouse() -> Warehouse:
 
 
 def create_scan(
-    scan_yml: ScanYml, variables: dict = None, soda_server_client: SodaServerClient | None = None
+    scan_yml: ScanYml,
+    variables: dict | None = None,
+    soda_server_client: SodaServerClient | None = None,
 ) -> Scan:
     """
     Create a scan object.
@@ -443,7 +445,9 @@ def execute(
     scan_yml = create_scan_yml(scan_definition)
     df.createOrReplaceTempView(scan_yml.table_name)
 
-    scan = create_scan(scan_yml, variables=variables, soda_server_client=soda_server_client)
+    scan = create_scan(
+        scan_yml, variables=variables, soda_server_client=soda_server_client
+    )
     scan.execute()
 
     if as_frames:
