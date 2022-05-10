@@ -253,7 +253,7 @@ def create_scan(
     scan_yml: ScanYml,
     variables: dict | None = None,
     soda_server_client: SodaServerClient | None = None,
-    time: str = dt.datetime.now(tz=dt.timezone.utc).isoformat(timespec="seconds"),
+    time: str | None = None,
 ) -> Scan:
     """
     Create a scan object.
@@ -265,13 +265,19 @@ def create_scan(
     variables: variables to be substituted in scan yml
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
-    time: timestamp date in ISO8601 format
+    time: timestamp date in ISO8601 format (defaul: None)
 
     Returns
     -------
     out : Scan
         The scan.
     """
+
+    if not time:
+        time = dt.datetime.now(tz=dt.timezone.utc).isoformat(
+            timespec="seconds"
+        )
+
     warehouse = create_warehouse()
     scan = Scan(
         warehouse=warehouse,
@@ -451,7 +457,10 @@ def execute(
     df.createOrReplaceTempView(scan_yml.table_name)
 
     scan = create_scan(
-        scan_yml, variables=variables, soda_server_client=soda_server_client, time=time
+        scan_yml,
+        variables=variables,
+        soda_server_client=soda_server_client,
+        time=time,
     )
     scan.execute()
 
