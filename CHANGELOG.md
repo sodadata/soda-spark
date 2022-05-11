@@ -1,3 +1,5 @@
+- Add `time` support to `execute`
+
 ## [0.3.1] - 2021-12-27
 
 - Add example to README about returning spark data frames as scan result

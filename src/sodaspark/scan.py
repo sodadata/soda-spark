@@ -254,6 +254,7 @@ def create_scan(
     variables: dict | None = None,
     warehouse_name: str = "sodaspark",
     soda_server_client: SodaServerClient | None = None,
+    time: str | None = None,
 ) -> Scan:
     """
     Create a scan object.
@@ -265,19 +266,25 @@ def create_scan(
     variables: variables to be substituted in scan yml
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
+    time: Optional[str] (default: None)
+        Timestamp date in ISO8601 format. If None, use datatime.now() in ISO8601 format.
 
     Returns
     -------
     out : Scan
         The scan.
     """
+
+    time = time or dt.datetime.now(tz=dt.timezone.utc).isoformat(
+        timespec="seconds"
+    )
     warehouse = create_warehouse(warehouse_name)
     scan = Scan(
         warehouse=warehouse,
         scan_yml=scan_yml,
         soda_server_client=soda_server_client,
         variables=variables,
-        time=dt.datetime.now(tz=dt.timezone.utc).isoformat(timespec="seconds"),
+        time=time,
     )
     return scan
 
@@ -422,6 +429,7 @@ def execute(
     warehouse_name: str = "sodaspark",
     soda_server_client: SodaServerClient | None = None,
     as_frames: bool | None = False,
+    time: str | None = None,
 ) -> ScanResult:
     """
     Execute a scan on a data frame.
@@ -438,6 +446,8 @@ def execute(
         A soda server client.
     as_frames : bool (default : False)
         Flag to return results in Dataframe
+    time: str (default : None)
+        Timestamp date in ISO8601 format at the start of a scan
 
     Returns
     -------
@@ -451,6 +461,7 @@ def execute(
         scan_yml,
         variables=variables,
         soda_server_client=soda_server_client,
+        time=time,
         warehouse_name=warehouse_name,
     )
     scan.execute()
