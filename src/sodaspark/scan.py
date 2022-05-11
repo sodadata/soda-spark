@@ -265,7 +265,8 @@ def create_scan(
     variables: variables to be substituted in scan yml
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
-    time: timestamp date in ISO8601 format (defaul: None)
+    time: Optional[str] (default: None)
+        Timestamp date in ISO8601 format. If None, use datatime.now() in ISO8601 format.
 
     Returns
     -------
@@ -273,10 +274,9 @@ def create_scan(
         The scan.
     """
 
-    if not time:
-        time = dt.datetime.now(tz=dt.timezone.utc).isoformat(
-            timespec="seconds"
-        )
+    time = time or dt.datetime.now(tz=dt.timezone.utc).isoformat(
+        timespec="seconds"
+    )
 
     warehouse = create_warehouse()
     scan = Scan(
