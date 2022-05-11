@@ -233,18 +233,18 @@ def create_scan_yml(scan_definition: str | Path) -> ScanYml:
     return scan_yml
 
 
-def create_warehouse_yml() -> WarehouseYml:
+def create_warehouse_yml(warehouse_name: str = "sodaspark") -> WarehouseYml:
     """Create Spark a ware house yml."""
     warehouse_yml = WarehouseYml(
-        name="sodaspark",
+        name=warehouse_name,
         dialect=_SparkDialect(),
     )
     return warehouse_yml
 
 
-def create_warehouse() -> Warehouse:
+def create_warehouse(warehouse_name: str = "spdaspark") -> Warehouse:
     """Create a ware house."""
-    warehouse_yml = create_warehouse_yml()
+    warehouse_yml = create_warehouse_yml(warehouse_name)
     warehouse = Warehouse(warehouse_yml)
     return warehouse
 
@@ -252,6 +252,7 @@ def create_warehouse() -> Warehouse:
 def create_scan(
     scan_yml: ScanYml,
     variables: dict | None = None,
+    warehouse_name: str = "sodaspark",
     soda_server_client: SodaServerClient | None = None,
     time: str | None = None,
 ) -> Scan:
@@ -277,8 +278,7 @@ def create_scan(
     time = time or dt.datetime.now(tz=dt.timezone.utc).isoformat(
         timespec="seconds"
     )
-
-    warehouse = create_warehouse()
+    warehouse = create_warehouse(warehouse_name)
     scan = Scan(
         warehouse=warehouse,
         scan_yml=scan_yml,
@@ -426,6 +426,7 @@ def execute(
     df: DataFrame,
     *,
     variables: dict | None = None,
+    warehouse_name: str = "sodaspark",
     soda_server_client: SodaServerClient | None = None,
     as_frames: bool | None = False,
     time: str | None = None,
@@ -461,6 +462,7 @@ def execute(
         variables=variables,
         soda_server_client=soda_server_client,
         time=time,
+        warehouse_name=warehouse_name,
     )
     scan.execute()
 
