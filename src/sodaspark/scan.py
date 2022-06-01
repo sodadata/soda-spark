@@ -265,7 +265,10 @@ def create_scan(
     ----------
     scan_yml : ScanYml
         The scan yml.
-    variables: variables to be substituted in scan yml
+    variables: Optional[dict] (default: None)
+        variables to be substituted in scan yml
+    warehouse_name: Optional[str] (default: sodapsark)
+        The name of the warehouse
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
     time: Optional[str] (default: None)
@@ -448,6 +451,8 @@ def execute(
         The data frame to be scanned.
     variables: Optional[dict] (default : None)
         Variables to be substituted in scan yml
+    warehouse_name: Optional[str] (default: sodapsark)
+        The name of the warehouse
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
     as_frames : bool (default : False)
