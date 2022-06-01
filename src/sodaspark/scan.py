@@ -9,6 +9,7 @@ from pyspark.sql import DataFrame, Row, SparkSession
 from pyspark.sql import types as T  # noqa: N812
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
+from sodasql.scan.failed_rows_processor import FailedRowsProcessor
 from sodasql.scan.file_system import FileSystemSingleton
 from sodasql.scan.measurement import Measurement
 from sodasql.scan.scan import Scan
@@ -255,6 +256,7 @@ def create_scan(
     warehouse_name: str = "sodaspark",
     soda_server_client: SodaServerClient | None = None,
     time: str | None = None,
+    failed_rows_processor: FailedRowsProcessor | None = None,
 ) -> Scan:
     """
     Create a scan object.
@@ -285,6 +287,7 @@ def create_scan(
         soda_server_client=soda_server_client,
         variables=variables,
         time=time,
+        failed_rows_processor=failed_rows_processor,
     )
     return scan
 
@@ -430,6 +433,7 @@ def execute(
     soda_server_client: SodaServerClient | None = None,
     as_frames: bool | None = False,
     time: str | None = None,
+    failed_rows_processor: FailedRowsProcessor | None = None,
 ) -> ScanResult:
     """
     Execute a scan on a data frame.
@@ -463,6 +467,7 @@ def execute(
         soda_server_client=soda_server_client,
         time=time,
         warehouse_name=warehouse_name,
+        failed_rows_processor=failed_rows_processor,
     )
     scan.execute()
 
