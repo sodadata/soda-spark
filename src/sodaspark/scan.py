@@ -270,6 +270,8 @@ def create_scan(
         A soda server client.
     time: Optional[str] (default: None)
         Timestamp date in ISO8601 format. If None, use datatime.now() in ISO8601 format.
+    failed_rows_processor: Optional[FailedRowsProcessor] (default: None)
+        A FailedRowsProcessor implementation
 
     Returns
     -------
@@ -452,6 +454,8 @@ def execute(
         Flag to return results in Dataframe
     time: str (default : None)
         Timestamp date in ISO8601 format at the start of a scan
+    failed_rows_processor: Optional[FailedRowsProcessor] (default: None)
+        A FailedRowsProcessor implementation
 
     Returns
     -------
