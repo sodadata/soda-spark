@@ -530,6 +530,7 @@ def test_failed_row_processor_return_correct_values(
     failed_rows_processor: FailedRowsProcessor,
     capsys: CaptureFixture,
 ) -> None:
+    """We expect the failed rows to show up in the system output."""
 
     expected_output = [
         "{'sample_name': 'dataset', 'column_name': None, 'test_ids': None, "
