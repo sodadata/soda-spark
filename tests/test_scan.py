@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import datetime as dt
 import json
 from dataclasses import dataclass
@@ -525,25 +526,25 @@ def test_scan_execute_return_as_data_frame(
     )
 
 
-def test_failed_row_processor_return_correct_values(
+def test_failed_rows_processor_return_correct_values(
     spark_session: SparkSession,
     failed_rows_processor: FailedRowsProcessor,
     capsys: CaptureFixture,
 ) -> None:
     """We expect the failed rows to show up in the system output."""
 
-    expected_output = [
-        "{'sample_name': 'dataset', 'column_name': None, 'test_ids': None, "
-        "'sample_columns': [{'name': 'id', 'type': 'string'}, {'name': 'number', "
-        "'type': 'int'}], 'sample_rows': [['1', 100], ['2', 200], ['3', None], ['4', "
-        "400]], 'sample_description': 'my_table.sample', 'total_row_count': 4}",
-        "{'sample_name': 'missing', 'column_name': 'number', 'test_ids': "
-        '[\'{"column":"number","expression":"missing_count == 0"}\'], '
-        "'sample_columns': [{'name': 'id', 'type': 'string'}, {'name': 'number', "
-        "'type': 'int'}], 'sample_rows': [['3', None]], 'sample_description': "
-        "'my_table.number.missing', 'total_row_count': 1}",
-        "",
-    ]
+    expected_output = {
+        "sample_name": "missing",
+        "column_name": "number",
+        "test_ids": ['{"column":"number","expression":"missing_count == 0"}'],
+        "sample_columns": [
+            {"name": "id", "type": "string"},
+            {"name": "number", "type": "int"},
+        ],
+        "sample_rows": [["3", None]],
+        "sample_description": "my_table.number.missing",
+        "total_row_count": 1,
+    }
 
     data = [("1", 100), ("2", 200), ("3", None), ("4", 400)]
 
@@ -561,7 +562,6 @@ def test_failed_row_processor_return_correct_values(
         metric_groups:
             - all
         samples:
-            table_limit: 5
             failed_limit: 5
         tests:
             - row_count > 0
@@ -579,4 +579,4 @@ def test_failed_row_processor_return_correct_values(
     )
 
     out, err = capsys.readouterr()
-    assert expected_output == out.split("\n")
+    assert expected_output == ast.literal_eval(out)
