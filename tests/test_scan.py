@@ -6,10 +6,13 @@ from dataclasses import dataclass
 from typing import BinaryIO
 
 import pytest
+from _pytest.capture import CaptureFixture
 from pyspark.sql import DataFrame, Row, SparkSession
 from pyspark.sql import functions as F  # noqa: N812
 from pyspark.sql import types as T  # noqa: N812
+from pyspark.sql.types import IntegerType, StringType, StructField, StructType
 from sodasql.dialects.spark_dialect import SparkDialect
+from sodasql.scan.failed_rows_processor import FailedRowsProcessor
 from sodasql.scan.group_value import GroupValue
 from sodasql.scan.measurement import Measurement
 from sodasql.scan.scan_error import TestExecutionScanError
@@ -181,6 +184,22 @@ def df(spark_session: SparkSession) -> DataFrame:
     )
     df = spark_session.createDataFrame(data, schema=schema)
     return df
+
+
+class InMemoryFailedRowProcessor(FailedRowsProcessor):
+    def process(self, context: dict) -> dict:
+
+        try:
+            print(context)
+        except Exception:
+            raise Exception
+
+        return {"message": "All failed rows were printed in your terminal"}
+
+
+@pytest.fixture
+def failed_rows_processor() -> FailedRowsProcessor:
+    return InMemoryFailedRowProcessor()
 
 
 def test_create_scan_yml_table_name_is_demodata(
@@ -507,3 +526,59 @@ def test_scan_execute_return_as_data_frame(
         (scan_result[1].count(), len(scan_result[1].columns)),
         (scan_result[2].count(), len(scan_result[2].columns)),
     )
+
+
+def test_failed_row_processor_return_correct_values(
+    spark_session: SparkSession,
+    failed_rows_processor: FailedRowsProcessor,
+    capsys: CaptureFixture,
+) -> None:
+
+    expected_output = [
+        "{'sample_name': 'dataset', 'column_name': None, 'test_ids': None, "
+        "'sample_columns': [{'name': 'id', 'type': 'string'}, {'name': 'number', "
+        "'type': 'int'}], 'sample_rows': [['1', 100], ['2', 200], ['3', None], ['4', "
+        "400]], 'sample_description': 'my_table.sample', 'total_row_count': 4}",
+        "{'sample_name': 'missing', 'column_name': 'number', 'test_ids': "
+        '[\'{"column":"number","expression":"missing_count == 0"}\'], '
+        "'sample_columns': [{'name': 'id', 'type': 'string'}, {'name': 'number', "
+        "'type': 'int'}], 'sample_rows': [['3', None]], 'sample_description': "
+        "'my_table.number.missing', 'total_row_count': 1}",
+        "",
+    ]
+
+    data = [("1", 100), ("2", 200), ("3", None), ("4", 400)]
+
+    schema = StructType(
+        [
+            StructField("id", StringType(), True),
+            StructField("number", IntegerType(), True),
+        ]
+    )
+
+    df = spark_session.createDataFrame(data=data, schema=schema)
+
+    scan_definition = """
+        table_name: my_table
+        metric_groups:
+            - all
+        samples:
+            table_limit: 5
+            failed_limit: 5
+        tests:
+            - row_count > 0
+        columns:
+            number:
+                tests:
+                    - duplicate_count == 0
+                    - missing_count == 0
+    """
+
+    scan.execute(
+        scan_definition=scan_definition,
+        df=df,
+        failed_rows_processor=failed_rows_processor,
+    )
+
+    out, err = capsys.readouterr()
+    assert expected_output == out.split("\n")
