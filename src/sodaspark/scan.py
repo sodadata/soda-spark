@@ -9,6 +9,7 @@ from pyspark.sql import DataFrame, Row, SparkSession
 from pyspark.sql import types as T  # noqa: N812
 from sodasql.common.yaml_helper import YamlHelper
 from sodasql.dialects.spark_dialect import SparkDialect
+from sodasql.scan.failed_rows_processor import FailedRowsProcessor
 from sodasql.scan.file_system import FileSystemSingleton
 from sodasql.scan.measurement import Measurement
 from sodasql.scan.scan import Scan
@@ -255,6 +256,7 @@ def create_scan(
     warehouse_name: str = "sodaspark",
     soda_server_client: SodaServerClient | None = None,
     time: str | None = None,
+    failed_rows_processor: FailedRowsProcessor | None = None,
 ) -> Scan:
     """
     Create a scan object.
@@ -263,11 +265,16 @@ def create_scan(
     ----------
     scan_yml : ScanYml
         The scan yml.
-    variables: variables to be substituted in scan yml
+    variables: Optional[dict] (default: None)
+        variables to be substituted in scan yml
+    warehouse_name: Optional[str] (default: sodapsark)
+        The name of the warehouse
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
     time: Optional[str] (default: None)
         Timestamp date in ISO8601 format. If None, use datatime.now() in ISO8601 format.
+    failed_rows_processor: Optional[FailedRowsProcessor] (default: None)
+        A FailedRowsProcessor implementation
 
     Returns
     -------
@@ -285,6 +292,7 @@ def create_scan(
         soda_server_client=soda_server_client,
         variables=variables,
         time=time,
+        failed_rows_processor=failed_rows_processor,
     )
     return scan
 
@@ -430,6 +438,7 @@ def execute(
     soda_server_client: SodaServerClient | None = None,
     as_frames: bool | None = False,
     time: str | None = None,
+    failed_rows_processor: FailedRowsProcessor | None = None,
 ) -> ScanResult:
     """
     Execute a scan on a data frame.
@@ -442,12 +451,16 @@ def execute(
         The data frame to be scanned.
     variables: Optional[dict] (default : None)
         Variables to be substituted in scan yml
+    warehouse_name: Optional[str] (default: sodapsark)
+        The name of the warehouse
     soda_server_client : Optional[SodaServerClient] (default : None)
         A soda server client.
     as_frames : bool (default : False)
         Flag to return results in Dataframe
     time: str (default : None)
         Timestamp date in ISO8601 format at the start of a scan
+    failed_rows_processor: Optional[FailedRowsProcessor] (default: None)
+        A FailedRowsProcessor implementation
 
     Returns
     -------
@@ -463,6 +476,7 @@ def execute(
         soda_server_client=soda_server_client,
         time=time,
         warehouse_name=warehouse_name,
+        failed_rows_processor=failed_rows_processor,
     )
     scan.execute()
 
