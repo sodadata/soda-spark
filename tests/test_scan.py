@@ -186,20 +186,17 @@ def df(spark_session: SparkSession) -> DataFrame:
     return df
 
 
-class InMemoryFailedRowProcessor(FailedRowsProcessor):
+class PrintFailedRowProcessor(FailedRowsProcessor):
     def process(self, context: dict) -> dict:
 
-        try:
-            print(context)
-        except Exception:
-            raise Exception
+        print(context)
 
         return {"message": "All failed rows were printed in your terminal"}
 
 
 @pytest.fixture
 def failed_rows_processor() -> FailedRowsProcessor:
-    return InMemoryFailedRowProcessor()
+    return PrintFailedRowProcessor()
 
 
 def test_create_scan_yml_table_name_is_demodata(
